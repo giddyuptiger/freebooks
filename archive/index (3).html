@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>FreeBooks</title>
+    <meta name="description" content="Are you ready to thrive?">
+    <link href="./favicon-32x32.png" rel="shortcut icon">
+
+    <link rel="stylesheet" href="main.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla">
+
+</head>
+
+<body>
+    Track your time
+    <button id="start">Start</button>
+    <button id="stop">Stop</button>
+    <div>
+        <div id="projectselect">
+            <label for="project">Project:</label>
+            <select name="project" id="project">
+      <option value="togocontainer">ToGo Container</option>
+      <option value="other">Other</option>
+    </select>
+        </div>
+        <p id="timer">Ready to work?</p>
+        <h1 id="timer"></h1>
+
+        <button id="enterhoursbtn">Enter Hours</button>
+        <div id="enterhours" class="modal">
+            <div class="modal-content">
+                <span class="close"> &times;</span>
+                <h1 id="enter-title">Enter Time</h1>
+                <h1 id="edit-title">Edit Entry</h1>
+                <label for="hoursentry">Hours</label><br>
+                <input type="text" id="hoursentry" name="hours"><br>
+                <label for="dateentry">Date:</label><br>
+                <input type="date" id="dateentry" name="date" min="2020-01-01">
+                <label for="projectentry">Project</label><br>
+                <select name="project" id="projectentry">
+      <option value="togocontainer">ToGo Container</option>
+      <option value="other">Other</option>
+    </select>
+                <input type="text" id="key">
+                <br>
+                <button id="submit">Submit</button>
+
+            </div>
+        </div>
+        <div id="edit" class="modal">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+            </div>
+        </div>
+
+        <table id="hours">
+        </table>
+
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="main.js"></script>
+    <script>
+    </script>
+</body>
