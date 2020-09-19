@@ -19,13 +19,11 @@
     <!-- <button id="start">Start</button>
     <button id="stop">Stop</button> -->
     <div>
-        <!-- <div id="projectselect">
-            <label for="project">Project:</label>
-            <select name="project" id="project">
-      <option value="togocontainer">ToGo Container</option>
-      <option value="other">Other</option>
-    </select>
-        </div> -->
+        <!-- The surrounding HTML is left untouched by FirebaseUI.
+     Your app may use that space for branding, controls and other customizations.-->
+        <h1>Welcome to My Awesome App</h1>
+        <div id="firebaseui-auth-container"></div>
+        <div id="loader">Loading...</div>
         <button id="projectbtn">Select Project</button>
         <button id="timer"></button>
         <button id="enterhoursbtn">Enter Time</button>
@@ -76,6 +74,10 @@
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.20.0/firebase-database.js"></script>
     <script src="/__/firebase/init.js"></script>
+    <script src="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="https://cdn.firebase.com/libs/firebaseui/3.5.2/firebaseui.css" />
+    <script src="bower_components/firebaseui/dist/firebaseui.js"></script>
+    <link type="text/css" rel="stylesheet" href="bower_components/firebaseui/dist/firebaseui.css" />
     <script src="main.js"></script>
     <script>
     </script>
