@@ -71,7 +71,7 @@ if ((firebase.auth().isSignInWithEmailLink(window.location.href)) {
     const hours = document.getElementById("hours");
     const enterHoursBtn = document.getElementById("enterhoursbtn");
     const keyBox = document.getElementById("key");
-    var db = firebase.database();
+    const db = firebase.database();
     var activeProject
     timer.addEventListener("click", startTimer);
     var projectmodal = document.getElementById('projectmodal');
@@ -247,9 +247,6 @@ if ((firebase.auth().isSignInWithEmailLink(window.location.href)) {
     //     modals.forEach(modal => hide(modal));
     //     }
 
-    function hide(element) {
-        element.style.display = "none";
-    }
 
     // function show(element) {
     //     element.syle.display = "block";
@@ -387,6 +384,19 @@ if ((firebase.auth().isSignInWithEmailLink(window.location.href)) {
             });
         });
     }
+
+//Sign Up
+var signupButton = document.getElementById('signup-button');
+var signupSubmit = document.getElementById('signup-submit');
+var signupModal = document.getElementById('sign-modal');
+
+signupButton.onclick = function () {
+    show(signupModal);
+}
+
+
+
+
     //DOWNLOAD TRIGGER
     var invoice = document.getElementById("invoice"); invoice.onclick = function() {
         console.log('invoicing....');
@@ -498,4 +508,13 @@ if ((firebase.auth().isSignInWithEmailLink(window.location.href)) {
 
     function toMS(hours) {
         return hours * 1000 * 60 * 60
+    }
+
+    
+    function hide(element) {
+        element.style.display = "none";
+    }
+
+    function show(element) {
+        element.style.display = "block";
     }
