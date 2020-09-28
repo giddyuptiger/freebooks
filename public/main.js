@@ -1,56 +1,75 @@
-// // var firebase = require('firebase');
-// // var firebaseui = require('firebaseui');
+// var firebase = require('firebase');
+// var firebaseui = require('firebaseui');
 
-// // Initialize the FirebaseUI Widget using Firebase.
-// var ui = new firebaseui.auth.AuthUI(firebase.auth());
+// Initialize the FirebaseUI Widget using Firebase.
+var ui = new firebaseui.auth.AuthUI(firebase.auth());
 
-// ui.start('#firebaseui-auth-container', {
-//   signInOptions: [
-//     firebase.auth.EmailAuthProvider.PROVIDER_ID,
-//     //optional display name
-//     // provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
-//     // requireDisplayName: false
-//   ],
-//   // Other config options...
-// });
+ui.start('#firebaseui-auth-container', {
+    signInOptions: [
+        // firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        // {
+        //     provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        //     signInMethod: firebase.auth.EmailAuthProvider.EMAIL_LINK_SIGN_IN_METHOD
+        // 
+    // List of OAuth providers supported.
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+        firebase.auth.GithubAuthProvider.PROVIDER_ID
+        //optional display name
+        // provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        // requireDisplayName: false
+    ],
+    // Other config options...
+});
 
-// // Initialize the FirebaseUI Widget using Firebase.
-// var ui = new firebaseui.auth.AuthUI(firebase.auth());
+// Initialize the FirebaseUI Widget using Firebase.
+var ui = new firebaseui.auth.AuthUI(firebase.auth());
 
-// var uiConfig = {
-//   callbacks: {
-//     signInSuccessWithAuthResult: function(authResult, redirectUrl) {
-//       // User successfully signed in.
-//       // Return type determines whether we continue the redirect automatically
-//       // or whether we leave that to developer to handle.
-//       return true;
-//     },
-//     uiShown: function() {
-//       // The widget is rendered.
-//       // Hide the loader.
-//       document.getElementById('loader').style.display = 'none';
-//     }
-//   },
-//   // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
-//   signInFlow: 'popup',
-//   signInSuccessUrl: '<url-to-redirect-to-on-success>',
-//   signInOptions: [
-//     // Leave the lines as is for the providers you want to offer your users.
-//     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-//     firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-//     firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-//     firebase.auth.GithubAuthProvider.PROVIDER_ID,
-//     firebase.auth.EmailAuthProvider.PROVIDER_ID,
-//     firebase.auth.PhoneAuthProvider.PROVIDER_ID
-//   ],
-//   // Terms of service url.
-//   tosUrl: '<your-tos-url>',
-//   // Privacy policy url.
-//   privacyPolicyUrl: '<your-privacy-policy-url>'
-// };
+var uiConfig = {
+    callbacks: {
+        signInSuccessWithAuthResult: function (authResult, redirectUrl) {
+            // User successfully signed in.
+            // Return type determines whether we continue the redirect automatically
+            // or whether we leave that to developer to handle.
+            return false;
+        },
+        uiShown: function () {
+            // The widget is rendered.
+            // Hide the loader.
+            document.getElementById('loader').style.display = 'none';
+        }
+    },
+    // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
+    signInFlow: 'popup',
+    signInSuccessUrl: '<url-to-redirect-to-on-success>',
+    signInOptions: [
+        // Leave the lines as is for the providers you want to offer your users.
+        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+        firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+        firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+        firebase.auth.GithubAuthProvider.PROVIDER_ID,
+        firebase.auth.EmailAuthProvider.PROVIDER_ID,
+        firebase.auth.PhoneAuthProvider.PROVIDER_ID
+    ],
+    // Terms of service url.
+    tosUrl: '<your-tos-url>',
+    // Privacy policy url.
+    privacyPolicyUrl: '<your-privacy-policy-url>'
+};
 
-// // The start method will wait until the DOM is loaded.
-// ui.start('#firebaseui-auth-container', uiConfig);
+// The start method will wait until the DOM is loaded.
+ui.start('#firebaseui-auth-container', uiConfig);
+
+firebase.auth().onAuthStateChanged(function(user) {
+  if (user) {
+    console.log(user, 'logged in');
+    username = user;
+  } else {
+    // No user is signed in.
+    console.log('no user logged in');
+  }
+});
 
 const startButton = document.getElementById("start");
 const stopButton = document.getElementById("stop");
@@ -66,14 +85,14 @@ var activeProject
 timer.addEventListener("click", startTimer);
 var projectmodal = document.getElementById('projectmodal');
 var projectbtn = document.getElementById('projectbtn');
-var username = 'jeremy';
+// var username = 'jeremy';
 var userRef = 'users/' + username;
 var editingKey
 var starttime;
 var active = false;
 
 //INITIALIZE TIMER STATE
-db.ref(userRef + '/active').on('value', function(snapshot) {
+db.ref(userRef + '/active').on('value', function (snapshot) {
     active = snapshot.val().active;
     activeProject = snapshot.val().project;
     console.log('Updating Timer to:', '\nproject: ', activeProject, '\nactive?:', active);
@@ -91,9 +110,9 @@ db.ref(userRef + '/active').on('value', function(snapshot) {
     starttime = snapshot.val().starttime;
 });
 //INITIALIZE HOURS TABLE
-db.ref(userRef + '/uninvoiced').on('value', function(snapshot) {
+db.ref(userRef + '/uninvoiced').on('value', function (snapshot) {
     var entries = '<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>';
-    snapshot.forEach(function(entry) {
+    snapshot.forEach(function (entry) {
         var cell = entry.val();
         var date = new Date(cell.date);
         if (cell.hours) {
@@ -127,7 +146,7 @@ var x = setInterval(() => {
 //START/STOP TIMER FUNCTIONS
 function startTimer() {
     console.log("running startTimer");
-    db.ref(userRef + '/active').once('value').then(function(snapshot) {
+    db.ref(userRef + '/active').once('value').then(function (snapshot) {
         if (activeProject) {
             if (!snapshot.exists() || !snapshot.val().active) /*THEN START TIMER*/ {
                 timer.innerHTML = "00:00:00";
@@ -210,7 +229,7 @@ var editTitle = document.getElementById("edit-title");
 var oldHours,
     oldDate,
     oldProject;
-enterhoursbtn.onclick = function() {
+enterhoursbtn.onclick = function () {
     hoursEntry.value = '';
     dateEntry.value = '';
     projectEntry.value = '';
@@ -218,11 +237,11 @@ enterhoursbtn.onclick = function() {
     enterhoursmodal.style.display = "block";
     hide(editTitle);
 }
-span.onclick = function() {
+span.onclick = function () {
     console.log('closing...');
     hide(enterhoursmodal);
 }
-window.onclick = function(event) {
+window.onclick = function (event) {
     if (event.target == enterhoursmodal) {
         hide(enterhoursmodal);
     } else if (event.target == projectmodal) {
@@ -246,18 +265,18 @@ function hide(element) {
 //     element.syle.display = "block";
 // }
 //PROJECT SCREEN
-projectbtn.onclick = function() {
+projectbtn.onclick = function () {
     if (!active) {
         console.log('choosing project');
         projectmodal.style.display = "block";
     }
 }
 
-db.ref(userRef + '/projects').on('value', function(snapshot) {
+db.ref(userRef + '/projects').on('value', function (snapshot) {
     var projects = '';
     if (snapshot.val()) {
         console.log(snapshot.val());
-        snapshot.forEach(function(projectKey) {
+        snapshot.forEach(function (projectKey) {
             var projectName = projectKey.val().projectName
             console.log('projectName: ' + projectName);
             projects += '<button id="' + projectName + '" class="projectselectbtns" onclick="selectProject(this.id)">' + projectName + '</button>' + '<button id="' + projectKey.key + '" onclick="deleteProject(this.id)"">X</button><br>';
@@ -287,12 +306,12 @@ function deleteProject(projectKey) {
 var addprojectinput = document.getElementById('addprojectinput');
 var addprojectbtn = document.getElementById('addprojectbtn');
 var addproject = document.getElementById('addproject');
-addprojectbtn.onclick = function() {
+addprojectbtn.onclick = function () {
     addprojectinput.style.display = "block";
     addproject.style.display = "block";
     addprojectinput.value = '';
 }
-addproject.onclick = function() {
+addproject.onclick = function () {
     if ( /* it doesnt exist already && */ addprojectinput.value !== '') {
         db.ref(userRef + '/projects').push({
             projectName: addprojectinput.value,
@@ -307,45 +326,45 @@ addproject.onclick = function() {
 var submit = document.getElementById("submit");
 var dateEntry = document.getElementById("dateentry");
 var hoursEntry = document.getElementById("hoursentry");
-submit.onclick = function() {
-        console.log('Submitting with key(undefined if new entry): ', editingKey);
-        const project = projectEntry.options[projectEntry.selectedIndex].value;
-        const date = dateEntry.value;
-        const hours = hoursEntry.value * 60 * 60 * 1000;
-        // const key = keyBox.value;
-        if (!editingKey) {
-            db.ref(userRef + '/uninvoiced').push({
-                submittedtime: {
-                    ".sv": "timestamp"
-                },
-                project: project,
-                hours: hours,
-                date: date,
-            });
-        } else {
-            console.log('updating old entry');
-            db.ref(userRef + '/uninvoiced' + '/' + editingKey).set({
-                history: {
-                    hours: toMS(oldHours),
-                    date: oldDate,
-                    project: oldProject,
-                },
-                hours: hours,
-                date: date,
-                project: project,
-            });
-            editingKey = undefined;
-        }
-        hide(enterhoursmodal);
+submit.onclick = function () {
+    console.log('Submitting with key(undefined if new entry): ', editingKey);
+    const project = projectEntry.options[projectEntry.selectedIndex].value;
+    const date = dateEntry.value;
+    const hours = hoursEntry.value * 60 * 60 * 1000;
+    // const key = keyBox.value;
+    if (!editingKey) {
+        db.ref(userRef + '/uninvoiced').push({
+            submittedtime: {
+                ".sv": "timestamp"
+            },
+            project: project,
+            hours: hours,
+            date: date,
+        });
+    } else {
+        console.log('updating old entry');
+        db.ref(userRef + '/uninvoiced' + '/' + editingKey).set({
+            history: {
+                hours: toMS(oldHours),
+                date: oldDate,
+                project: oldProject,
+            },
+            hours: hours,
+            date: date,
+            project: project,
+        });
+        editingKey = undefined;
     }
-    //EDIT MODAL
+    hide(enterhoursmodal);
+}
+//EDIT MODAL
 
 function editEntry(key) {
     console.log('editing: ' + key);
     enterhoursmodal.style.display = "block";
     hide(enterTitle);
 
-    db.ref(userRef + '/uninvoiced').once('value', function(snapshot) {
+    db.ref(userRef + '/uninvoiced').once('value', function (snapshot) {
         oldHours = toHours(snapshot.val()[key].hours);
         oldDate = snapshot.val()[key].date;
         oldProject = snapshot.val()[key].project;
@@ -361,12 +380,12 @@ function editEntry(key) {
 
 function deleteEntry(key) {
     console.log('deleting: ' + key);
-    db.ref(userRef + '/uninvoiced' + '/' + key).once('value', function(snapshot) {
+    db.ref(userRef + '/uninvoiced' + '/' + key).once('value', function (snapshot) {
         // oldHours = toHours(snapshot.val()[key].hours);
         // oldDate = snapshot.val()[key].date;
         // oldProject = snapshot.val()[key].project;
         // console.log(key, ': ', oldHours, ', ', oldDate, ', ', oldProject);
-        db.ref(userRef + '/deleted/' + key).set(snapshot.val(), function(error) {
+        db.ref(userRef + '/deleted/' + key).set(snapshot.val(), function (error) {
             if (!error) {
                 db.ref(userRef + '/deleted/' + key).update({
                     deleted: {
@@ -374,7 +393,7 @@ function deleteEntry(key) {
                     }
                 })
                 db.ref(userRef + '/uninvoiced' + '/' + key).remove();
-            } else if (typeof(console) !== 'undefined' && console.error) {
+            } else if (typeof (console) !== 'undefined' && console.error) {
                 console.error(error);
             }
         });
@@ -382,7 +401,7 @@ function deleteEntry(key) {
 }
 //DOWNLOAD TRIGGER
 var invoice = document.getElementById("invoice");
-invoice.onclick = function() {
+invoice.onclick = function () {
     console.log('invoicing....');
     exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
 }
@@ -446,26 +465,26 @@ var headers = {
 };
 
 itemsNotFormatted = [{
-        model: 'Samsung S7',
-        chargers: '55',
-        cases: '56',
-        earphones: '57',
-        scratched: '2'
-    },
-    {
-        model: 'Pixel XL',
-        chargers: '77',
-        cases: '78',
-        earphones: '79',
-        scratched: '4'
-    },
-    {
-        model: 'iPhone 7',
-        chargers: '88',
-        cases: '89',
-        earphones: '90',
-        scratched: '6'
-    }
+    model: 'Samsung S7',
+    chargers: '55',
+    cases: '56',
+    earphones: '57',
+    scratched: '2'
+},
+{
+    model: 'Pixel XL',
+    chargers: '77',
+    cases: '78',
+    earphones: '79',
+    scratched: '4'
+},
+{
+    model: 'iPhone 7',
+    chargers: '88',
+    cases: '89',
+    earphones: '90',
+    scratched: '6'
+}
 ];
 
 var itemsFormatted = [];
