@@ -35,7 +35,7 @@ var uiConfig = {
   },
   // Will use popup for IDP Providers sign-in flow instead of the default, redirect.
   signInFlow: "popup",
-  signInSuccessUrl: "googe.com",
+  signInSuccessUrl: "",
   signInOptions: [
     // Leave the lines as is for the providers you want to offer your users.
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
@@ -59,46 +59,14 @@ var logout = document.getElementById("logoutbtn");
 // var uid;
 var uid;
 var userRef;
-firebase.auth().onAuthStateChanged(function (user) {
-  if (user) {
-    console.log(user, "logged in");
-    uid = user.uid;
-    userRef = "users/" + uid;
-    console.log(uid);
-    // hide(signin);
-    // show(logout);
-    db.ref(userRef).once("value", function (snapshot) {
-      if (!snapshot.val()) {
-        console.log("no", snapshot.val());
-      } else {
-        console.log("it exists");
-      }
-    });
-  } else {
-    // No user is signed in.
-    // show(signin);
-    // hide(logout);
-    console.log("no user logged in");
-  }
-});
-
-logout.onclick = function () {
-  firebase
-    .auth()
-    .signOut()
-    .then(function () {
-      console.log("logged out");
-    });
-  //   show(signin);
-};
-
 const startButton = document.getElementById("start");
 const stopButton = document.getElementById("stop");
 const timer = document.getElementById("timer");
 const projectSelector = document.getElementById("project");
 const projectSelect = document.getElementById("projectselect");
 const projectEntry = document.getElementById("projectentry");
-const hours = document.getElementById("hours");
+const hours = document.getElementById("hours-table");
+const oldHoursTable = document.getElementById("oldhours-table");
 const enterHoursBtn = document.getElementById("enterhoursbtn");
 const keyBox = document.getElementById("key");
 var db = firebase.database();
@@ -116,60 +84,144 @@ var projectbtn = document.getElementById("projectbtn");
 var editingKey;
 var starttime;
 var active = false;
+//AUTH CHECK
+firebase.auth().onAuthStateChanged(function (user) {
+  if (user) {
+    console.log(user.email, "logged in");
+    uid = user.uid;
+    userRef = "users/" + uid;
+    hide(signin);
+    // logout.style.display = "block";
+    show(logout);
+    db.ref(userRef + "/state").on("value", function (snapshot) {
+      try {
+        console.log("trying to read /state");
+        active = snapshot.val().active;
+        activeProject = snapshot.val().project;
+        console.log(
+          "Updating state to:",
+          "\nproject: ",
+          activeProject,
+          "\nactive?:",
+          active
+        );
+        if (snapshot.exists() && active) {
+          projectbtn.classList.add("inactive");
+          console.log("UPDATED TIMER STATE, starttime: " + starttime);
+        } else {
+          projectbtn.classList.remove("inactive");
+          console.log('UPDATED TIMER STATE "stopped"');
+        }
+        if (activeProject) {
+          projectbtn.innerHTML = "Project: " + activeProject;
+        }
+        starttime = snapshot.val().starttime;
+      } catch {
+        console.log("couldn't reach active, creating it now...");
+        db.ref(userRef + "/state").set({ active: false });
+      }
+    });
+    liveProjects();
+    liveHours();
+    // db.ref(userRef).once("value", function (snapshot) {
+    //   console.log(snapshot.val());
+    //   if (!snapshot.val()) {
+    //     console.log("it doesnt exist");
+    //   } else {
+    //     console.log("it exists");
+    //   }
+    // });
+  } else {
+    // No user is signed in.
+    // signin.style.display = "block";
+    hide(logout);
+    show(signin);
+    console.log("no user logged in");
+  }
+});
+
+logout.onclick = function () {
+  firebase
+    .auth()
+    .signOut()
+    .then(function () {
+      console.log("logged out");
+    });
+  //   show(signin);
+};
 
 //INITIALIZE TIMER STATE
 // if (db.ref(userRef)) {
-console.log("it exists");
-db.ref(userRef + "/active").on("value", function (snapshot) {
-  active = snapshot.val().active;
-  activeProject = snapshot.val().project;
-  console.log(
-    "Updating Timer to:",
-    "\nproject: ",
-    activeProject,
-    "\nactive?:",
-    active
-  );
-  if (snapshot.exists() && active) {
-    projectbtn.classList.add("inactive");
-    console.log("UPDATED TIMER STATE, starttime: " + starttime);
-  } else {
-    console.log("inactive");
-    projectbtn.classList.remove("inactive");
-    console.log("UPDATED TIMER STATE, starttime: " + starttime);
-  }
-  if (activeProject) {
-    projectbtn.innerHTML = "Project: " + activeProject;
-  }
-  starttime = snapshot.val().starttime;
-});
+//UNCOMMENT ASAP
+
 // } else {
 // }
+
 //INITIALIZE HOURS TABLE
-db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
-  var entries =
-    "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
-  snapshot.forEach(function (entry) {
-    var cell = entry.val();
-    var date = new Date(cell.date);
-    if (cell.hours) {
-      entries += "<tr>";
-      entries += "<td>" + cell.date + "<td>";
-      entries += "<td>" + cell.project + "<td>";
-      var time = (Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4).toFixed(2);
-      entries += "<td>" + time + "<td>";
-      entries += '<td style="display:none">' + entry.key + "<td>";
-      entries +=
-        '<td> <button id="' +
-        entry.key +
-        '" onClick="editEntry(this.id)"> ✎ </button></td> <td><button id="' +
-        entry.key +
-        '" onClick="deleteEntry(this.id)"> X </button> </td>';
-      entries += "</tr>";
+function liveHours() {
+  console.log("1");
+  db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
+    var hoursArray = [["Date", "Client", "Project", "Hours", "key"]];
+    // var entries =
+    // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
+    hours.innerHTML = "";
+    snapshot.forEach(function (entry) {
+      var rowArray = [];
+      var cell = entry.val();
+      var date = new Date(cell.date);
+      rowArray.push(cell.date);
+      rowArray.push(cell.client);
+      rowArray.push(cell.project);
+      rowArray
+        .push(Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4)
+        .toFixed(2);
+      rowArray.push(entry.key);
+      hoursArray.push(rowArray);
+      // console.log(rowArray, hoursArray);
+      //OLD HOURS TABLE
+      // if (cell.hours) {
+      //   entries += "<tr>";
+      //   entries += "<td>" + cell.date + "<td>";
+      //   entries += "<td>" + cell.project + "<td>";
+      //   var time = (Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4).toFixed(
+      //     2
+      //   );
+      //   entries += "<td>" + time + "<td>";
+      //   entries += '<td style="display:none">' + entry.key + "<td>";
+      //   entries +=
+      //     '<td> <button id="' +
+      //     entry.key +
+      //     '" onClick="editEntry(this.id)"> ✎ </button></td> <td><button id="' +
+      //     entry.key +
+      //     '" onClick="deleteEntry(this.id)"> X </button> </td>';
+      //   entries += "</tr>";
+      // }
+    });
+    console.log(hoursArray);
+    for (var i = 0; i < hoursArray.length; i++) {
+      var row = document.createElement("tr");
+      for (var j = 0; j < hoursArray[0].length + 1; j++) {
+        var cell = document.createElement("td");
+        cell.innerHTML += hoursArray[i][j];
+        if (j === hoursArray[i].length - 1) {
+          cell.style.display = "none";
+        }
+        if (j === hoursArray[i].length) {
+          cell.innerHTML =
+            '<button id="' +
+            hoursArray[i][4] +
+            '" onClick="editEntry(this.id)"> ✎ </button><button id="' +
+            hoursArray[i][4] +
+            '" onClick="deleteEntry(this.id)"> X </button>';
+        }
+        row.appendChild(cell);
+      }
+      hours.appendChild(row);
     }
+    console.log(hours);
+    // oldHoursTable.innerHTML = entries;
   });
-  hours.innerHTML = entries;
-});
+}
 //TICKING TIMER
 var x = setInterval(() => {
   if (starttime !== undefined) {
@@ -198,7 +250,7 @@ var x = setInterval(() => {
 //START/STOP TIMER FUNCTIONS
 function startTimer() {
   console.log("running startTimer");
-  db.ref(userRef + "/active")
+  db.ref(userRef + "/state")
     .once("value")
     .then(function (snapshot) {
       if (activeProject) {
@@ -207,7 +259,7 @@ function startTimer() {
           const currentTime = new Date();
           var newKey = db.ref(userRef).push().key;
           console.log("2");
-          db.ref(userRef + "/active").set({
+          db.ref(userRef + "/state").set({
             active: true,
             key: newKey,
             starttime: {
@@ -215,33 +267,40 @@ function startTimer() {
             },
             project: activeProject,
           });
-          db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
-            starttime: {
-              ".sv": "timestamp",
-            },
-            stoptime: null,
-            project: activeProject,
-          });
+          // db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
+          //   starttime: {
+          //     ".sv": "timestamp",
+          //   },
+          //   stoptime: null,
+          //   project: activeProject,
+          // });
           console.log("startTimer running for project:", activeProject);
         } /*THEN STOP TIMER*/ else {
           var key = snapshot.val().key;
           var stoptime = new Date();
-          var hours = stoptime - snapshot.val().starttime;
+          var starttime = snapshot.val().starttime;
+          var hours = stoptime - starttime;
+          var project = activeProject;
           var date =
-            new Date(snapshot.val().starttime).getFullYear() +
+            new Date(starttime).getFullYear() +
             "-" +
-            twoDigits(new Date(snapshot.val().starttime).getMonth() + 1) +
+            twoDigits(new Date(starttime).getMonth() + 1) +
             "-" +
-            twoDigits(new Date(snapshot.val().starttime).getDate());
-          db.ref(userRef + "/active").update({
+            twoDigits(new Date(starttime).getDate());
+          console.log(date, hours, project, starttime, stoptime);
+          db.ref(userRef + "/state").update({
             active: false,
             key: null,
             starttime: null,
           });
-          db.ref(userRef + "/uninvoiced" + "/" + key).update({
-            stoptime: stoptime,
+          db.ref(userRef + "/uninvoiced" + "/" + key).set({
+            starttime: starttime,
+            stoptime: {
+              ".sv": "timestamp",
+            },
             hours: hours,
             date: date,
+            project: project,
           });
         }
       } else {
@@ -253,14 +312,14 @@ function startTimer() {
 // function stopTimer() {
 //     console.log("running stopTimer");
 
-//     db.ref(userRef + '/active').once('value').then(function(snapshot) {
+//     db.ref(userRef + '/state').once('value').then(function(snapshot) {
 //         if (snapshot.val().active) {
 //             timer.innerHTML = "Ready to work?";
 //             var key = snapshot.val().key
 //             var stoptime = new Date()
-//             var hours = stoptime - snapshot.val().starttime;
-//             var date = new Date(snapshot.val().starttime).getFullYear() + '-' + twoDigits((new Date(snapshot.val().starttime).getMonth() + 1)) + '-' + twoDigits(new Date(snapshot.val().starttime).getDate());
-//             db.ref(userRef + '/active').update({
+//             var hours = stoptime - starttime;
+//             var date = new Date(starttime).getFullYear() + '-' + twoDigits((new Date(starttime).getMonth() + 1)) + '-' + twoDigits(new Date(starttime).getDate());
+//             db.ref(userRef + '/state').update({
 //                 active: false,
 //                 key: null,
 //                 starttime: null,
@@ -319,9 +378,9 @@ function hide(element) {
   element.style.display = "none";
 }
 
-// function show(element) {
-//     element.syle.display = "block";
-// }
+function show(element) {
+  element.style.display = "block";
+}
 //PROJECT SCREEN
 projectbtn.onclick = function () {
   if (!active) {
@@ -329,35 +388,37 @@ projectbtn.onclick = function () {
     projectmodal.style.display = "block";
   }
 };
-
-db.ref(userRef + "/projects").on("value", function (snapshot) {
-  var projects = "";
-  if (snapshot.val()) {
-    console.log(snapshot.val());
-    snapshot.forEach(function (projectKey) {
-      var projectName = projectKey.val().projectName;
-      console.log("projectName: " + projectName);
-      projects +=
-        '<button id="' +
-        projectName +
-        '" class="projectselectbtns" onclick="selectProject(this.id)">' +
-        projectName +
-        "</button>" +
-        '<button id="' +
-        projectKey.key +
-        '" onclick="deleteProject(this.id)"">X</button><br>';
-    });
-    console.log(projects);
-    projectlist.innerHTML = projects;
-  } else {
-    projectlist.innerHTML = "Add a new Project";
-  }
-});
+//LIVE PROJECT INFO
+function liveProjects() {
+  db.ref(userRef + "/projects").on("value", function (snapshot) {
+    var projectsHTML = "";
+    if (snapshot.val()) {
+      // console.log(snapshot.val());
+      snapshot.forEach(function (projectKey) {
+        var projectName = projectKey.val().projectName;
+        console.log("Found project: " + projectName);
+        projectsHTML +=
+          '<button id="' +
+          projectName +
+          '" class="projectselectbtns" onclick="selectProject(this.id)">' +
+          projectName +
+          "</button>" +
+          '<button id="' +
+          projectKey.key +
+          '" onclick="deleteProject(this.id)"">X</button><br>';
+      });
+      // console.log(projectsHTML);
+      projectlist.innerHTML = projectsHTML;
+    } else {
+      projectlist.innerHTML = "Add a new Project";
+    }
+  });
+}
 
 function selectProject(project) {
-  console.log("selectProjectrunning");
+  console.log("Selected ", project);
   activeProject = project;
-  db.ref(userRef + "/active").update({
+  db.ref(userRef + "/state").update({
     project: project,
   });
   console.log(activeProject);

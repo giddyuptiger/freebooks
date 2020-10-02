@@ -1,128 +1,137 @@
 :root {
-    --color1: rgb(22, 22, 22);
-    --color2: white;
-    --color3: rgb(184, 233, 255);
-    --button-width-fraction: 0.90;
+  --color1: rgb(22, 22, 22);
+  --color2: white;
+  --color3: rgb(184, 233, 255);
+  --button-width-fraction: 0.9;
 }
 
 #addprojectinput,
 #addproject {
-    display: none;
+  display: none;
 }
 
 body {
-    background-color: var(--color1);
-    color: var(--color2);
+  background-color: var(--color1);
+  color: var(--color2);
 }
-
 
 /* The Modal (background) */
 
 .modal {
-    display: none;
-    position: fixed;
-    z-index: 1;
-    padding-top: 100px;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    /* Enable scroll if needed */
-    background-color: rgb(0, 0, 0);
-    /* Fallback color */
-    background-color: rgba(181, 250, 153, 0.4);
-    /* Black w/ opacity */
-    backdrop-filter: blur(1px);
+  display: none;
+  position: fixed;
+  z-index: 1;
+  padding-top: 100px;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  /* Enable scroll if needed */
+  background-color: rgb(0, 0, 0);
+  /* Fallback color */
+  background-color: rgba(181, 250, 153, 0.4);
+  /* Black w/ opacity */
+  backdrop-filter: blur(1px);
 }
-
 
 /* Modal Content */
 
 .modal-content {
-    background-color: #6d6d6d;
-    margin: auto;
-    padding: 20px;
-    border: 1px solid #888;
-    width: 80%;
+  background-color: #6d6d6d;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
 }
-
 
 /* The Close Button */
 
 .close {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
 }
 
 .close:hover,
 .close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
 }
 
 #timer,
 #projectbtn {
-    color: var(--color3);
-    text-align: center;
-    font-size: 7vw;
-    width: 100%;
-    /* margin: 8vh; */
-    background-color: rgba(0, 0, 0, 0);
-    border-style: none;
-    height: 10vw
+  color: var(--color3);
+  text-align: center;
+  font-size: 7vw;
+  width: 100%;
+  /* margin: 8vh; */
+  background-color: rgba(0, 0, 0, 0);
+  border-style: none;
+  height: 10vw;
 }
 
 .inactive {
-    color: rgb(133, 133, 133) !important;
+  color: rgb(133, 133, 133) !important;
+}
+
+#logoutbtn {
+  background-color: rgb(0, 0, 0, 0);
+  color: rgb(184, 233, 255);
 }
 
 #projectbtn {
-    font-size: 4vw;
+  font-size: 4vw;
 }
 
 .projectselectbtns {
-    background-color: rgba(181, 250, 153, 0.4);
-    border-style: solid;
-    width: 40%;
-    padding: 1rem;
+  background-color: rgba(181, 250, 153, 0.4);
+  border-style: solid;
+  width: 40%;
+  padding: 1rem;
 }
 
 .projectselectbtns:hover {
-    background-color: rgb(188, 228, 206);
+  background-color: rgb(188, 228, 206);
 }
 
 #timer:hover,
 #projectbtn:hover {
-    /* background-color: rgb(99, 99, 99); */
-    border-style: solid;
-    border-color: var(--color3);
-    border-radius: 20px;
-    cursor: pointer;
+  /* background-color: rgb(99, 99, 99); */
+  border-style: solid;
+  border-color: var(--color3);
+  border-radius: 20px;
+  cursor: pointer;
 }
 
 #timerstop span {
-    width: 100%;
-    height: 100%;
+  width: 100%;
+  height: 100%;
 }
 
 #timer:hover span {
-    display: none;
+  display: none;
 }
 
 #timer:hover:before {
-    content: "STOP";
-    color: rgb(204, 109, 109);
+  content: "STOP";
+  color: rgb(204, 109, 109);
 }
 
 :focus {
-    outline: none;
-    background-color: rgb(220, 255, 220);
+  outline: none;
+  background-color: rgb(220, 255, 220);
 }
 
 #key {
-    display: none;
+  display: none;
+}
+
+#title {
+  color: rgb(133, 133, 133);
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  text-align: center;
+  width: 100%;
 }
