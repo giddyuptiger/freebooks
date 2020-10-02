@@ -70,7 +70,7 @@ const oldHoursTable = document.getElementById("oldhours-table");
 const enterHoursBtn = document.getElementById("enterhoursbtn");
 const keyBox = document.getElementById("key");
 var db = firebase.database();
-var activeProject;
+var activeProject, activeClient;
 timer.addEventListener("click", startTimer);
 var projectmodal = document.getElementById("projectmodal");
 var projectbtn = document.getElementById("projectbtn");
@@ -98,10 +98,13 @@ firebase.auth().onAuthStateChanged(function (user) {
         console.log("trying to read /state");
         active = snapshot.val().active;
         activeProject = snapshot.val().project;
+        activeClient = snapshot.val().client;
         console.log(
           "Updating state to:",
           "\nproject: ",
           activeProject,
+          "\nclient: ",
+          activeClient,
           "\nactive?:",
           active
         );
@@ -254,6 +257,7 @@ function startTimer() {
     .once("value")
     .then(function (snapshot) {
       if (activeProject) {
+        console.log("activeclient: ", activeClient);
         if (!snapshot.exists() || !snapshot.val().active) {
           /*THEN START TIMER*/ timer.innerHTML = "00:00:00";
           const currentTime = new Date();
@@ -266,6 +270,7 @@ function startTimer() {
               ".sv": "timestamp",
             },
             project: activeProject,
+            client: activeClient
           });
           // db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
           //   starttime: {
@@ -281,13 +286,13 @@ function startTimer() {
           var starttime = snapshot.val().starttime;
           var hours = stoptime - starttime;
           var project = activeProject;
+          var client = activeClient;
           var date =
             new Date(starttime).getFullYear() +
             "-" +
             twoDigits(new Date(starttime).getMonth() + 1) +
             "-" +
             twoDigits(new Date(starttime).getDate());
-          console.log(date, hours, project, starttime, stoptime);
           db.ref(userRef + "/state").update({
             active: false,
             key: null,
@@ -301,6 +306,7 @@ function startTimer() {
             hours: hours,
             date: date,
             project: project,
+            client: client,
           });
         }
       } else {
@@ -364,6 +370,7 @@ window.onclick = function (event) {
   } else if (event.target == projectmodal) {
     hide(projectmodal);
     hide(addprojectinput);
+    hide(addclientinput);
     hide(addproject);
   }
 };
@@ -396,11 +403,20 @@ function liveProjects() {
       // console.log(snapshot.val());
       snapshot.forEach(function (projectKey) {
         var projectName = projectKey.val().projectName;
-        console.log("Found project: " + projectName);
+        var clientName = projectKey.val().client;
+        console.log("Found project: " + projectName, "with client: ".clientName);
+        var option = document.createElement("option");
+        option.value = projectName;
+        option.textContent = projectName;
+        projectEntry.appendChild(option);
         projectsHTML +=
           '<button id="' +
           projectName +
-          '" class="projectselectbtns" onclick="selectProject(this.id)">' +
+          '" data-client="' +
+          clientName +
+          '" class="projectselectbtns" onclick="selectProject(this.id, this.getAttribute(' +
+          "\'data-client\'" +
+          '));">' +
           projectName +
           "</button>" +
           '<button id="' +
@@ -415,11 +431,13 @@ function liveProjects() {
   });
 }
 
-function selectProject(project) {
-  console.log("Selected ", project);
+function selectProject(project, client) {
+  console.log("Selected ", project, client);
   activeProject = project;
+  activeClient = client;
   db.ref(userRef + "/state").update({
     project: project,
+    client: client,
   });
   console.log(activeProject);
   hide(projectmodal);
@@ -431,21 +449,25 @@ function deleteProject(projectKey) {
 
 //ADD PROJECT
 var addprojectinput = document.getElementById("addprojectinput");
+var addclientinput = document.getElementById("addclientinput");
 var addprojectbtn = document.getElementById("addprojectbtn");
 var addproject = document.getElementById("addproject");
 addprojectbtn.onclick = function () {
   addprojectinput.style.display = "block";
+  addclientinput.style.display = "block";
   addproject.style.display = "block";
   addprojectinput.value = "";
+  addclientinput.value = "";
 };
 addproject.onclick = function () {
   if (/* it doesnt exist already && */ addprojectinput.value !== "") {
     db.ref(userRef + "/projects").push({
       projectName: addprojectinput.value,
-      client: "NA",
+      client: addclientinput.value,
     });
   }
   hide(addprojectinput);
+  hide(addclientinput);
   hide(addproject);
 };
 
