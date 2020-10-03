@@ -83,6 +83,7 @@ var projectbtn = document.getElementById("projectbtn");
 // }
 var editingKey;
 var starttime;
+var hoursArray;
 var active = false;
 //AUTH CHECK
 firebase.auth().onAuthStateChanged(function (user) {
@@ -134,11 +135,15 @@ firebase.auth().onAuthStateChanged(function (user) {
     //     console.log("it exists");
     //   }
     // });
+    show(timer);
+    show(projectbtn);
   } else {
     // No user is signed in.
     // signin.style.display = "block";
     hide(logout);
     show(signin);
+    hide(timer);
+    hide(projectbtn);
     console.log("no user logged in");
   }
 });
@@ -148,7 +153,13 @@ logout.onclick = function () {
     .auth()
     .signOut()
     .then(function () {
+      show(signin);
+      hide(timer);
+      hours.innerHTML = "";
       console.log("logged out");
+    })
+    .catch(function (error) {
+      console.log(error);
     });
   //   show(signin);
 };
@@ -164,7 +175,7 @@ logout.onclick = function () {
 function liveHours() {
   console.log("1");
   db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
-    var hoursArray = [["Date", "Client", "Project", "Hours", "key"]];
+    hoursArray = [["Date", "Client", "Project", "Hours", "key"]];
     // var entries =
     // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
     hours.innerHTML = "";
@@ -270,7 +281,7 @@ function startTimer() {
               ".sv": "timestamp",
             },
             project: activeProject,
-            client: activeClient
+            client: activeClient,
           });
           // db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
           //   starttime: {
@@ -404,18 +415,22 @@ function liveProjects() {
       snapshot.forEach(function (projectKey) {
         var projectName = projectKey.val().projectName;
         var clientName = projectKey.val().client;
-        console.log("Found project: " + projectName, "with client: ".clientName);
+        console.log(
+          "Found project: " + projectName,
+          "with client: ".clientName
+        );
         var option = document.createElement("option");
         option.value = projectName;
         option.textContent = projectName;
         projectEntry.appendChild(option);
+        var dataClient = "'data-client'";
         projectsHTML +=
           '<button id="' +
           projectName +
           '" data-client="' +
           clientName +
           '" class="projectselectbtns" onclick="selectProject(this.id, this.getAttribute(' +
-          "\'data-client\'" +
+          dataClient +
           '));">' +
           projectName +
           "</button>" +
@@ -478,6 +493,7 @@ var hoursEntry = document.getElementById("hoursentry");
 submit.onclick = function () {
   console.log("Submitting with key(undefined if new entry): ", editingKey);
   const project = projectEntry.options[projectEntry.selectedIndex].value;
+  // const client = "clientEntry.options[]"
   const date = dateEntry.value;
   const hours = hoursEntry.value * 60 * 60 * 1000;
   // const key = keyBox.value;
@@ -487,6 +503,7 @@ submit.onclick = function () {
         ".sv": "timestamp",
       },
       project: project,
+      // client: client,
       hours: hours,
       date: date,
     });
@@ -551,7 +568,7 @@ function deleteEntry(key) {
   });
 }
 //DOWNLOAD TRIGGER
-var invoice = document.getElementById("invoice");
+var invoice = document.getElementById("invoicebtn");
 invoice.onclick = function () {
   console.log("invoicing....");
   exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download

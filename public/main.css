@@ -9,6 +9,9 @@
 #addproject,
 #addclientinput {
   display: none;
+}
+
+#addprojectinput {
   font-size: larger;
 }
 
@@ -47,13 +50,15 @@ body {
   width: 80%;
 }
 
-#navbar {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-}
-
 /* The Close Button */
+
+#firebaseui-auth-container {
+  position: relative;
+  /* top: 50%;
+  left: 50%; */
+  /* transform: translate(-50%, 0%); */
+  padding: 2rem;
+}
 
 .close {
   color: #aaaaaa;
@@ -85,9 +90,42 @@ body {
   color: rgb(133, 133, 133) !important;
 }
 
-#logoutbtn {
-  background-color: rgb(0, 0, 0, 0);
+button {
+  background-color: rgba(255, 255, 255, 0.137);
   color: rgb(184, 233, 255);
+  border-radius: 0.2rem;
+  border-style: none;
+}
+
+#navbar {
+  position: relative;
+  height: 1rem;
+  /* padding: 0.5rem; */
+}
+
+#navbar button {
+  font-size: large;
+}
+
+#bottombar {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  padding-bottom: 0.5rem;
+}
+
+#logoutbtn {
+  /* #invoicebtn { */
+  float: right;
+  position: relative;
+  display: inline-block;
+}
+
+#settingsbtn {
+  /* #enterhoursbtn { */
+  float: left;
+  position: relative;
+  display: inline-block;
 }
 
 #projectbtn {
@@ -110,6 +148,11 @@ table {
   background-color: rgb(58, 58, 58);
   padding: 1rem;
   width: 100%;
+}
+
+#tagline {
+  color: rgb(212, 212, 212);
+  text-align: center;
 }
 
 #timer:hover,
@@ -148,4 +191,10 @@ table {
   color: rgb(207, 248, 195);
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   text-align: center;
+  float: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 1rem;
 }

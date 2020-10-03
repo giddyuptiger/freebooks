@@ -1,81 +1,101 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
 
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FreeBooks</title>
+    <meta name="description" content="Are you ready to thrive?" />
+    <link href="./favicon-32x32.png" rel="shortcut icon" />
+  </head>
 
-  <title>FreeBooks</title>
-  <meta name="description" content="Are you ready to thrive?" />
-  <link href="./favicon-32x32.png" rel="shortcut icon" />
-</head>
-
-<body>
-  <!-- <button id="start">Start</button>
+  <body>
+    <!-- <button id="start">Start</button>
     <button id="stop">Stop</button> -->
-  <div>
-    <!-- <div id="projectselect">
+    <div>
+      <!-- <div id="projectselect">
             <label for="project">Project:</label>
             <select name="project" id="project">
       <option value="togocontainer">ToGo Container</option>
       <option value="other">Other</option>
     </select>
         </div> -->
-    <!-- The surrounding HTML is left untouched by FirebaseUI.
+      <!-- The surrounding HTML is left untouched by FirebaseUI.
      Your app may use that space for branding, controls and other customizations.-->
-    <div id="firebaseui-auth-container"></div>
-    <div id="navbar">
-      <div id="logout">
-        <button id="logoutbtn">Log Out</button>
-        <div id="loader">Loading...</div>
+      <div id="navbar">
+        <div id="title">FREEBOOKS</div>
+        <div id="menu"><button id="settingsbtn">settings</button></div>
+        <div id="logout">
+          <button id="logoutbtn">Log Out</button>
+          <div id="loader">Loading...</div>
+        </div>
+        <!-- <div><button style="width: 4rem">-</button></div> -->
       </div>
-      <div id="title">FREEBOOKS</div>
-      <div><button style="width: 4rem">-</button></div>
-    </div>
-    <button id="projectbtn">Select Project</button>
-    <button id="timer"></button>
-    <button id="enterhoursbtn">Enter Time</button>
-    <br />
-    <button id="invoice">INVOICE</button>
-    <div id="enterhours" class="modal">
-      <div class="modal-content">
-        <span class="close"> &times;</span>
-        <h1 id="enter-title">Enter Time</h1>
-        <h1 id="edit-title">Edit Entry</h1>
-        <label for="hoursentry">Hours</label><br />
-        <input type="text" id="hoursentry" name="hours" /><br />
-        <label for="dateentry">Date:</label><br />
-        <input type="date" id="dateentry" name="date" min="2020-01-01" />
-        <label for="projectentry">Project</label><br />
-        <select name="project" id="projectentry"></select>
-        <input type="text" id="key" />
+      <div id="firebaseui-auth-container">
+        <div id="tagline">Sign Up Free. Use Free. Forever.</div>
+      </div>
+      <button id="projectbtn">Select Project</button>
+      <button id="timer"></button>
+      <div id="bottombar">
+        <button id="enterhoursbtn">Enter Time</button>
         <br />
-        <button id="submit">Submit</button>
+        <button id="invoicebtn">INVOICE</button>
       </div>
-    </div>
-    <div id="projectmodal" class="modal">
-      <div class="modal-content">
-        <span class="close"> &times;</span>
-        <div id="projectlist"></div>
-        <button id="addprojectbtn">+</button>
-        <input type="text" id="addprojectinput" name="addprojectinput" placeholder="Project" />
-        <input type="text" id="addclientinput" name="addclientinput" placeholder="Client" />
-        <button id="addproject">Add project</button>
+      <div id="enterhours" class="modal">
+        <div class="modal-content">
+          <span class="close"> &times;</span>
+          <h1 id="enter-title">Enter Time</h1>
+          <h1 id="edit-title">Edit Entry</h1>
+          <label for="hoursentry">Hours</label><br />
+          <input type="text" id="hoursentry" name="hours" /><br />
+          <label for="dateentry">Date:</label><br />
+          <input type="date" id="dateentry" name="date" min="2020-01-01" />
+          <label for="projectentry">Project</label><br />
+          <select name="project" id="projectentry"></select>
+          <input type="text" id="key" />
+          <br />
+          <button id="submit">Submit</button>
+        </div>
       </div>
+      <div id="projectmodal" class="modal">
+        <div class="modal-content">
+          <span class="close"> &times;</span>
+          <div id="projectlist"></div>
+          <button id="addprojectbtn">+</button>
+          <input
+            type="text"
+            id="addprojectinput"
+            name="addprojectinput"
+            placeholder="Project"
+          />
+          <input
+            type="text"
+            id="addclientinput"
+            name="addclientinput"
+            placeholder="Client"
+          />
+          <button id="addproject">Add project</button>
+        </div>
+      </div>
+
+      <table id="hours-table"></table>
     </div>
-
-    <table id="hours-table"></table>
-  </div>
-  <link rel="stylesheet" href="main.css" />
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Karla" />
-  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-analytics.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-database.js"></script>
-  <script src="/__/firebase/init.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
-  <link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.css" />
-  <script src="main.js"></script>
-</body>
-
+    <link rel="stylesheet" href="main.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Karla"
+    />
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-database.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.css"
+    />
+    <script src="main.js"></script>
+  </body>
 </html>
