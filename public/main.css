@@ -75,15 +75,16 @@ body {
 }
 
 #timer,
-#projectbtn {
+#projectbtn,
+#taskbtn {
   color: var(--color3);
   text-align: center;
-  font-size: 7vw;
+  font-size: 12vw;
   width: 100%;
   /* margin: 8vh; */
   background-color: rgba(0, 0, 0, 0);
   border-style: none;
-  height: 10vw;
+  padding: 1vw;
 }
 
 .inactive {
@@ -131,6 +132,9 @@ button {
 #projectbtn {
   font-size: 4vw;
 }
+#taskbtn {
+  font-size:3vw;
+}
 
 .projectselectbtns {
   background-color: rgba(181, 250, 153, 0.4);
@@ -156,7 +160,8 @@ table {
 }
 
 #timer:hover,
-#projectbtn:hover {
+#projectbtn:hover 
+#taskbtn:hover {
   /* background-color: rgb(99, 99, 99); */
   border-style: solid;
   border-color: var(--color3);

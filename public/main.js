@@ -415,14 +415,14 @@ function liveProjects() {
       snapshot.forEach(function (projectKey) {
         var projectName = projectKey.val().projectName;
         var clientName = projectKey.val().client;
-        console.log(
-          "Found project: " + projectName,
-          "with client: ".clientName
-        );
+        // console.log(
+        //   "Found project: " + projectName,
+        //   "with client: ".clientName
+        // );
         var option = document.createElement("option");
         option.value = projectName;
         option.textContent = projectName;
-        projectEntry.appendChild(option);
+        projectEntry.appendChild(option).setAttribute('data-client', clientName);
         var dataClient = "'data-client'";
         projectsHTML +=
           '<button id="' +
@@ -459,7 +459,10 @@ function selectProject(project, client) {
 }
 
 function deleteProject(projectKey) {
+  if(confirm('Delete Project?')) {
   db.ref(userRef + "/projects" + "/" + projectKey).remove();
+  } else {//Do Nothing
+  console.log('Not Deleted');}
 }
 
 //ADD PROJECT
@@ -493,6 +496,7 @@ var hoursEntry = document.getElementById("hoursentry");
 submit.onclick = function () {
   console.log("Submitting with key(undefined if new entry): ", editingKey);
   const project = projectEntry.options[projectEntry.selectedIndex].value;
+  const client = projectEntry.options[projectEntry.selectedIndex].getAttribute('data-client');
   // const client = "clientEntry.options[]"
   const date = dateEntry.value;
   const hours = hoursEntry.value * 60 * 60 * 1000;
@@ -503,7 +507,7 @@ submit.onclick = function () {
         ".sv": "timestamp",
       },
       project: project,
-      // client: client,
+      client: client,
       hours: hours,
       date: date,
     });
@@ -514,10 +518,12 @@ submit.onclick = function () {
         hours: toMS(oldHours),
         date: oldDate,
         project: oldProject,
+        // client: oldClient
       },
       hours: hours,
       date: date,
       project: project,
+      client: client
     });
     editingKey = undefined;
   }
@@ -531,9 +537,28 @@ function editEntry(key) {
   hide(enterTitle);
 
   db.ref(userRef + "/uninvoiced").once("value", function (snapshot) {
+    try {
     oldHours = toHours(snapshot.val()[key].hours);
+    } catch {
+      console.log('No old client');
+      oldHours = 'NA';
+    }
+    try {
     oldDate = snapshot.val()[key].date;
+    } catch {
+      console.log('No old client');
+    }
+    try{
     oldProject = snapshot.val()[key].project;
+    } catch {
+      console.log('No old client');
+    }
+    try{
+    oldClient = snapshot.val()[key].client;
+    } catch {
+      console.log('No old client');
+      oldClient = 'NA';
+    }
     console.log(key, ": ", oldHours, ", ", oldDate, ", ", oldProject);
     hoursEntry.value = oldHours;
     dateEntry.value = oldDate;
@@ -545,6 +570,7 @@ function editEntry(key) {
 }
 
 function deleteEntry(key) {
+  if (confirm('Are you sure you want to delete?')) {
   console.log("deleting: " + key);
   db.ref(userRef + "/uninvoiced" + "/" + key).once("value", function (
     snapshot
@@ -566,6 +592,8 @@ function deleteEntry(key) {
       }
     });
   });
+} else {//Do Nothing
+console.log('Delete Canceled');}
 }
 //DOWNLOAD TRIGGER
 var invoice = document.getElementById("invoicebtn");
