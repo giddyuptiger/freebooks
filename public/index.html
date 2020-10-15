@@ -54,6 +54,8 @@
           <br/>
           <label for="projectentry">Project</label><br />
           <select name="project" id="projectentry"></select>
+          <!-- <br/>
+          <input type ="text" id="clientdisplay" disabled="disabled" /> -->
           <input type="text" id="key" />
           <br />
           <button id="submit">Submit</button>
@@ -79,8 +81,22 @@
           <button id="addproject">Add project</button>
         </div>
       </div>
-
+<div id="report">
+<button id="bulk-edit-btn">Edit All Selected Entries</button>
+<button id="bulk-delete-btn">Delete All Selected Entries</button>
+<div id="bulk-edit-modal" class="modal">
+  <div class="modal-content">
+          <span class="close"> &times;</span>
+          Edit All Selected Entries
+          <div id="bulk-edit-form">
+            <label for="project-edit">Project:</label>
+            <select name="project-edit" id="project-edit"></select>
+          </div>
+          <button id="submit-bulk-edit">Submit</button>
+  </div>
+</div>
       <table id="hours-table"></table>
+</div>
     </div>
     <link rel="stylesheet" href="main.css" />
     <link

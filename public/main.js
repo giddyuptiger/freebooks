@@ -173,7 +173,7 @@ logout.onclick = function () {
 
 //INITIALIZE HOURS TABLE
 function liveHours() {
-  console.log("1");
+  // console.log("1");
   db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
     hoursArray = [["Date", "Client", "Project", "Hours", "key"]];
     // var entries =
@@ -184,8 +184,16 @@ function liveHours() {
       var cell = entry.val();
       var date = new Date(cell.date);
       rowArray.push(cell.date);
-      rowArray.push(cell.client);
-      rowArray.push(cell.project);
+      if (cell.pid !== undefined) {
+        var pid = cell.pid;
+        var project = projectObj[pid].projectName;
+        var client = projectObj[pid].client;
+        rowArray.push(client);
+        rowArray.push(project);
+      } else {
+        rowArray.push(cell.client + " (dated entry)");
+        rowArray.push(cell.project + " (dated entry)");
+      }
       rowArray
         .push(Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4)
         .toFixed(2);
@@ -211,9 +219,13 @@ function liveHours() {
       //   entries += "</tr>";
       // }
     });
-    console.log(hoursArray);
+    // console.log(hoursArray);
     for (var i = 0; i < hoursArray.length; i++) {
       var row = document.createElement("tr");
+      row.innerHTML +=
+        '<td><input type="checkbox" data-entrykey="' +
+        hoursArray[i][4] +
+        '"></td>';
       for (var j = 0; j < hoursArray[0].length + 1; j++) {
         var cell = document.createElement("td");
         cell.innerHTML += hoursArray[i][j];
@@ -232,7 +244,7 @@ function liveHours() {
       }
       hours.appendChild(row);
     }
-    console.log(hours);
+    console.log("hours innerHTML:", hours);
     // oldHoursTable.innerHTML = entries;
   });
 }
@@ -362,7 +374,7 @@ var editmodal = document.getElementById("edit");
 var editspan = document.getElementsByClassName("close")[1];
 var enterTitle = document.getElementById("enter-title");
 var editTitle = document.getElementById("edit-title");
-var oldHours, oldDate, oldProject;
+var oldHours, oldDate, oldProject, oldpid;
 enterhoursbtn.onclick = function () {
   hoursEntry.value = "";
   dateEntry.value = "";
@@ -383,6 +395,8 @@ window.onclick = function (event) {
     hide(addprojectinput);
     hide(addclientinput);
     hide(addproject);
+  } else if (event.target == bulkEditModal) {
+    hide(bulkEditModal);
   }
 };
 
@@ -406,13 +420,20 @@ projectbtn.onclick = function () {
     projectmodal.style.display = "block";
   }
 };
+var projectObj = Object;
 //LIVE PROJECT INFO
 function liveProjects() {
   db.ref(userRef + "/projects").on("value", function (snapshot) {
     var projectsHTML = "";
+    projectObj = snapshot.val();
+    console.log("projectObj:VVVVVVVV");
+    console.log(projectObj);
     if (snapshot.val()) {
       // console.log(snapshot.val());
       snapshot.forEach(function (projectKey) {
+        // console.log('HERE');
+        // console.log(projectKey.key);
+        var pid = projectKey.key;
         var projectName = projectKey.val().projectName;
         var clientName = projectKey.val().client;
         // console.log(
@@ -420,9 +441,20 @@ function liveProjects() {
         //   "with client: ".clientName
         // );
         var option = document.createElement("option");
-        option.value = projectName;
-        option.textContent = projectName;
-        projectEntry.appendChild(option).setAttribute('data-client', clientName);
+        option.value = pid;
+        option.textContent = projectName + " for " + clientName;
+        option.setAttribute("data-client", clientName);
+        option.setAttribute("data-project", projectName);
+        var optionb = option.cloneNode(true);
+        // projectEntry.appendChild(option).setAttribute('data-client', clientName);
+        // projectEntry.appendChild(option).setAttribute('data-project', projectName);
+        projectEntry.appendChild(option);
+        // var optionb = document.createElement("option");
+        // optionb.value = pid;
+        // optionb.textContent = projectName + ' for ' + clientName;
+        // optionb.setAttribute('data-client', clientName)
+        // optionb.setAttribute('data-project', projectName);
+        projectEdit.appendChild(optionb);
         var dataClient = "'data-client'";
         projectsHTML +=
           '<button id="' +
@@ -433,6 +465,9 @@ function liveProjects() {
           dataClient +
           '));">' +
           projectName +
+          '<br/><p style="font-size: 1vw;"> for ' +
+          clientName +
+          "</p>" +
           "</button>" +
           '<button id="' +
           projectKey.key +
@@ -459,10 +494,12 @@ function selectProject(project, client) {
 }
 
 function deleteProject(projectKey) {
-  if(confirm('Delete Project?')) {
-  db.ref(userRef + "/projects" + "/" + projectKey).remove();
-  } else {//Do Nothing
-  console.log('Not Deleted');}
+  if (confirm("Delete Project?")) {
+    db.ref(userRef + "/projects" + "/" + projectKey).remove();
+  } else {
+    //Do Nothing
+    console.log("Not Deleted");
+  }
 }
 
 //ADD PROJECT
@@ -495,8 +532,14 @@ var dateEntry = document.getElementById("dateentry");
 var hoursEntry = document.getElementById("hoursentry");
 submit.onclick = function () {
   console.log("Submitting with key(undefined if new entry): ", editingKey);
-  const project = projectEntry.options[projectEntry.selectedIndex].value;
-  const client = projectEntry.options[projectEntry.selectedIndex].getAttribute('data-client');
+  const pid = projectEntry.options[projectEntry.selectedIndex].value;
+  console.log("HERE", pid);
+  const project = projectEntry.options[projectEntry.selectedIndex].getAttribute(
+    "data-project"
+  );
+  const client = projectEntry.options[projectEntry.selectedIndex].getAttribute(
+    "data-client"
+  );
   // const client = "clientEntry.options[]"
   const date = dateEntry.value;
   const hours = hoursEntry.value * 60 * 60 * 1000;
@@ -506,30 +549,87 @@ submit.onclick = function () {
       submittedtime: {
         ".sv": "timestamp",
       },
-      project: project,
-      client: client,
+      pid: pid,
+      // client: client,
       hours: hours,
       date: date,
     });
   } else {
-    console.log("updating old entry");
+    console.log("updating old entry", oldpid);
     db.ref(userRef + "/uninvoiced" + "/" + editingKey).set({
       history: {
         hours: toMS(oldHours),
         date: oldDate,
-        project: oldProject,
+        pid: oldpid,
         // client: oldClient
       },
       hours: hours,
       date: date,
-      project: project,
-      client: client
+      pid: pid,
+      // client: client
     });
     editingKey = undefined;
   }
   hide(enterhoursmodal);
 };
 //EDIT MODAL
+
+var projectEdit = document.getElementById("project-edit");
+var bulkEditBtn = document.getElementById("bulk-edit-btn");
+var bulkEditModal = document.getElementById("bulk-edit-modal");
+var submitBulkEdit = document.getElementById("submit-bulk-edit");
+var bulkDeleteBtn = document.getElementById("bulk-delete-btn");
+var bulkEditKeys = {};
+
+bulkDeleteBtn.onclick = () => {
+  var checkboxes = document.querySelectorAll("input[type=checkbox]");
+  checkboxes.forEach((checkbox) => {
+    var entrykey = checkbox.dataset.entrykey;
+    if (checkbox.checked && entrykey) {
+      // console.log(checkbox.dataset.entrykey);
+      // console.log(bulkEditKeys, pid);
+      var path = entrykey;
+      bulkEditKeys[path] = null;
+      console.log(bulkEditKeys);
+    }
+  });
+  console.log("deleting:", bulkEditKeys);
+  //make object with only checked entries and their new pid
+  // REMOVE from UNINVOICED
+  // db.ref(userRef + "/uninvoiced").remove(bulkEditKeys);
+  // COPY to DELETED
+  var uninvoicedObj = {};
+  db.ref(userRef + "/uninvoiced").once("value", function (snap) {
+    bulkEditKeys.forEach((key) => {
+      console.log(key);
+      console.log(snap.val());
+      uninvoicedObj[key] = snap.val();
+    });
+    // db.ref(userRef + "/deleted").set(uninvoicedObj);
+  });
+};
+
+bulkEditBtn.onclick = () => {
+  show(bulkEditModal);
+};
+
+submitBulkEdit.onclick = () => {
+  const pid = projectEdit.options[projectEdit.selectedIndex].value;
+  var checkboxes = document.querySelectorAll("input[type=checkbox]");
+  checkboxes.forEach((checkbox) => {
+    var entrykey = checkbox.dataset.entrykey;
+    if (checkbox.checked && entrykey) {
+      // console.log(checkbox.dataset.entrykey);
+      // console.log(bulkEditKeys, pid);
+      var path = entrykey + "/pid";
+      bulkEditKeys[path] = pid;
+    }
+  });
+  console.log("updating:", bulkEditKeys);
+  //make object with only checked entries and their new pid
+  db.ref(userRef + "/uninvoiced").update(bulkEditKeys);
+  hide(bulkEditModal);
+};
 
 function editEntry(key) {
   console.log("editing: " + key);
@@ -538,31 +638,50 @@ function editEntry(key) {
 
   db.ref(userRef + "/uninvoiced").once("value", function (snapshot) {
     try {
-    oldHours = toHours(snapshot.val()[key].hours);
+      oldHours = toHours(snapshot.val()[key].hours);
     } catch {
-      console.log('No old client');
-      oldHours = 'NA';
+      console.log("No old hours");
+      oldHours = "NA";
     }
     try {
-    oldDate = snapshot.val()[key].date;
+      oldDate = snapshot.val()[key].date;
     } catch {
-      console.log('No old client');
+      console.log("No old date");
+      oldDate = "NA";
     }
-    try{
-    oldProject = snapshot.val()[key].project;
+    try {
+      oldProject = snapshot.val()[key].project;
     } catch {
-      console.log('No old client');
+      console.log("No old project");
+      oldProject = "NA";
     }
-    try{
-    oldClient = snapshot.val()[key].client;
+
+    if (snapshot.val()[key].pid != undefined) {
+      oldpid = snapshot.val()[key].pid;
+      console.log(snapshot.val()[key].pid, "set old pid");
+    } else {
+      oldpid = "NA";
+    }
+    try {
+      oldClient = snapshot.val()[key].client;
     } catch {
-      console.log('No old client');
-      oldClient = 'NA';
+      console.log("No old client");
+      oldClient = "NA";
     }
-    console.log(key, ": ", oldHours, ", ", oldDate, ", ", oldProject);
+    console.log(
+      key,
+      ": ",
+      oldHours,
+      ", ",
+      oldDate,
+      ", ",
+      oldProject,
+      ", ",
+      oldpid
+    );
     hoursEntry.value = oldHours;
     dateEntry.value = oldDate;
-    projectEntry.value = oldProject;
+    projectEntry.value = oldpid;
     keyBox.value = key;
     editingKey = key;
     console.log(keyBox.value);
@@ -570,30 +689,32 @@ function editEntry(key) {
 }
 
 function deleteEntry(key) {
-  if (confirm('Are you sure you want to delete?')) {
-  console.log("deleting: " + key);
-  db.ref(userRef + "/uninvoiced" + "/" + key).once("value", function (
-    snapshot
-  ) {
-    // oldHours = toHours(snapshot.val()[key].hours);
-    // oldDate = snapshot.val()[key].date;
-    // oldProject = snapshot.val()[key].project;
-    // console.log(key, ': ', oldHours, ', ', oldDate, ', ', oldProject);
-    db.ref(userRef + "/deleted/" + key).set(snapshot.val(), function (error) {
-      if (!error) {
-        db.ref(userRef + "/deleted/" + key).update({
-          deleted: {
-            ".sv": "timestamp",
-          },
-        });
-        db.ref(userRef + "/uninvoiced" + "/" + key).remove();
-      } else if (typeof console !== "undefined" && console.error) {
-        console.error(error);
-      }
+  if (confirm("Are you sure you want to delete?")) {
+    console.log("deleting: " + key);
+    db.ref(userRef + "/uninvoiced" + "/" + key).once("value", function (
+      snapshot
+    ) {
+      // oldHours = toHours(snapshot.val()[key].hours);
+      // oldDate = snapshot.val()[key].date;
+      // oldProject = snapshot.val()[key].project;
+      // console.log(key, ': ', oldHours, ', ', oldDate, ', ', oldProject);
+      db.ref(userRef + "/deleted/" + key).set(snapshot.val(), function (error) {
+        if (!error) {
+          db.ref(userRef + "/deleted/" + key).update({
+            deleted: {
+              ".sv": "timestamp",
+            },
+          });
+          db.ref(userRef + "/uninvoiced" + "/" + key).remove();
+        } else if (typeof console !== "undefined" && console.error) {
+          console.error(error);
+        }
+      });
     });
-  });
-} else {//Do Nothing
-console.log('Delete Canceled');}
+  } else {
+    //Do Nothing
+    console.log("Delete Canceled");
+  }
 }
 //DOWNLOAD TRIGGER
 var invoice = document.getElementById("invoicebtn");
