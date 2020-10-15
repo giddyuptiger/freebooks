@@ -579,34 +579,51 @@ var bulkEditBtn = document.getElementById("bulk-edit-btn");
 var bulkEditModal = document.getElementById("bulk-edit-modal");
 var submitBulkEdit = document.getElementById("submit-bulk-edit");
 var bulkDeleteBtn = document.getElementById("bulk-delete-btn");
-var bulkEditKeys = {};
 
 bulkDeleteBtn.onclick = () => {
+  var bulkEditKeys = {};
   var checkboxes = document.querySelectorAll("input[type=checkbox]");
   checkboxes.forEach((checkbox) => {
     var entrykey = checkbox.dataset.entrykey;
     if (checkbox.checked && entrykey) {
-      // console.log(checkbox.dataset.entrykey);
-      // console.log(bulkEditKeys, pid);
       var path = entrykey;
       bulkEditKeys[path] = null;
-      console.log(bulkEditKeys);
     }
   });
-  console.log("deleting:", bulkEditKeys);
-  //make object with only checked entries and their new pid
-  // REMOVE from UNINVOICED
-  // db.ref(userRef + "/uninvoiced").remove(bulkEditKeys);
-  // COPY to DELETED
-  var uninvoicedObj = {};
-  db.ref(userRef + "/uninvoiced").once("value", function (snap) {
-    bulkEditKeys.forEach((key) => {
-      console.log(key);
-      console.log(snap.val());
-      uninvoicedObj[key] = snap.val();
+  var numberOfEntries = Object.keys(bulkEditKeys).length;
+  if (numberOfEntries > 1) {
+    var deleteConfirmText = "Delete " + numberOfEntries + " entries?";
+  } else if (numberOfEntries == 1 && checkboxes[0].checked) {
+    return;
+  } else if (numberOfEntries == 1) {
+    var deleteConfirmText = "Delete Entry?";
+  }
+  if (confirm(deleteConfirmText)) {
+    console.log("deleting:", bulkEditKeys);
+    //make object with only checked entries and their new pid
+    // COPY to DELETED
+    var uninvoicedObj = {};
+    db.ref(userRef + "/uninvoiced").once("value", function (snap) {
+      console.log("entries obj:", snap.val());
+      Object.keys(bulkEditKeys).forEach((key) => {
+        console.log("key to move: ", key, snap.val()[key]);
+        // console.log(key.val());
+        var deletedEntry = snap.val()[key];
+        deletedEntry.deleted = {
+          ".sv": "timestamp",
+        };
+        // deletedEntry[deleted] = newDate();
+        uninvoicedObj[key] = deletedEntry;
+      });
+      console.log("uninvoicedObj: ", uninvoicedObj);
+      db.ref(userRef + "/deleted").update(uninvoicedObj);
+      console.log("did it work?");
     });
-    // db.ref(userRef + "/deleted").set(uninvoicedObj);
-  });
+    // REMOVE from UNINVOICED
+    db.ref(userRef + "/uninvoiced").update(bulkEditKeys);
+  } else {
+    console.log("bulk delete cancelled");
+  }
 };
 
 bulkEditBtn.onclick = () => {
@@ -614,6 +631,7 @@ bulkEditBtn.onclick = () => {
 };
 
 submitBulkEdit.onclick = () => {
+  var bulkEditKeys = {};
   const pid = projectEdit.options[projectEdit.selectedIndex].value;
   var checkboxes = document.querySelectorAll("input[type=checkbox]");
   checkboxes.forEach((checkbox) => {
