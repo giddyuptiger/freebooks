@@ -70,7 +70,8 @@ const oldHoursTable = document.getElementById("oldhours-table");
 const enterHoursBtn = document.getElementById("enterhoursbtn");
 const keyBox = document.getElementById("key");
 var db = firebase.database();
-var activeProject, activeClient;
+var activepid, activeProject, activeClient;
+var projectObj = Object;
 timer.addEventListener("click", startTimer);
 var projectmodal = document.getElementById("projectmodal");
 var projectbtn = document.getElementById("projectbtn");
@@ -94,19 +95,23 @@ firebase.auth().onAuthStateChanged(function (user) {
     hide(signin);
     // logout.style.display = "block";
     show(logout);
+    liveProjects();
+    liveHours();
     db.ref(userRef + "/state").on("value", function (snapshot) {
       try {
-        console.log("trying to read /state");
+        // console.log("trying to read /state");
         active = snapshot.val().active;
-        activeProject = snapshot.val().project;
-        activeClient = snapshot.val().client;
+        activepid = snapshot.val().pid;
+        // activeClient = snapshot.val().client;
         console.log(
           "Updating state to:",
-          "\nproject: ",
+          "\npid: ",
+          activepid,
+          "\nProject: ",
           activeProject,
-          "\nclient: ",
+          "\nClient: ",
           activeClient,
-          "\nactive?:",
+          "\nActive?:",
           active
         );
         if (snapshot.exists() && active) {
@@ -117,6 +122,7 @@ firebase.auth().onAuthStateChanged(function (user) {
           console.log('UPDATED TIMER STATE "stopped"');
         }
         if (activeProject) {
+          // activeProject =
           projectbtn.innerHTML = "Project: " + activeProject;
         }
         starttime = snapshot.val().starttime;
@@ -125,16 +131,6 @@ firebase.auth().onAuthStateChanged(function (user) {
         db.ref(userRef + "/state").set({ active: false });
       }
     });
-    liveProjects();
-    liveHours();
-    // db.ref(userRef).once("value", function (snapshot) {
-    //   console.log(snapshot.val());
-    //   if (!snapshot.val()) {
-    //     console.log("it doesnt exist");
-    //   } else {
-    //     console.log("it exists");
-    //   }
-    // });
     show(timer);
     show(projectbtn);
   } else {
@@ -163,13 +159,6 @@ logout.onclick = function () {
     });
   //   show(signin);
 };
-
-//INITIALIZE TIMER STATE
-// if (db.ref(userRef)) {
-//UNCOMMENT ASAP
-
-// } else {
-// }
 
 //INITIALIZE HOURS TABLE
 function liveHours() {
@@ -279,8 +268,8 @@ function startTimer() {
   db.ref(userRef + "/state")
     .once("value")
     .then(function (snapshot) {
-      if (activeProject) {
-        console.log("activeclient: ", activeClient);
+      if (activepid) {
+        // console.log("activeclient: ", activeClient);
         if (!snapshot.exists() || !snapshot.val().active) {
           /*THEN START TIMER*/ timer.innerHTML = "00:00:00";
           const currentTime = new Date();
@@ -292,24 +281,24 @@ function startTimer() {
             starttime: {
               ".sv": "timestamp",
             },
-            project: activeProject,
-            client: activeClient,
+            pid: activepid,
+            // client: activeClient,
           });
           // db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
           //   starttime: {
           //     ".sv": "timestamp",
           //   },
           //   stoptime: null,
-          //   project: activeProject,
+          //   project: activepid,
           // });
-          console.log("startTimer running for project:", activeProject);
+          console.log("startTimer running for project:", activepid);
         } /*THEN STOP TIMER*/ else {
           var key = snapshot.val().key;
           var stoptime = new Date();
           var starttime = snapshot.val().starttime;
           var hours = stoptime - starttime;
-          var project = activeProject;
-          var client = activeClient;
+          var pid = activepid;
+          // var client = activeClient;
           var date =
             new Date(starttime).getFullYear() +
             "-" +
@@ -328,8 +317,8 @@ function startTimer() {
             },
             hours: hours,
             date: date,
-            project: project,
-            client: client,
+            pid: pid,
+            // client: client,
           });
         }
       } else {
@@ -420,7 +409,6 @@ projectbtn.onclick = function () {
     projectmodal.style.display = "block";
   }
 };
-var projectObj = Object;
 //LIVE PROJECT INFO
 function liveProjects() {
   db.ref(userRef + "/projects").on("value", function (snapshot) {
@@ -458,12 +446,10 @@ function liveProjects() {
         var dataClient = "'data-client'";
         projectsHTML +=
           '<button id="' +
-          projectName +
+          pid +
           '" data-client="' +
           clientName +
-          '" class="projectselectbtns" onclick="selectProject(this.id, this.getAttribute(' +
-          dataClient +
-          '));">' +
+          '" class="projectselectbtns" onclick="selectProject(this.id);">' +
           projectName +
           '<br/><p style="font-size: 1vw;"> for ' +
           clientName +
@@ -481,15 +467,20 @@ function liveProjects() {
   });
 }
 
-function selectProject(project, client) {
-  console.log("Selected ", project, client);
-  activeProject = project;
-  activeClient = client;
+function selectProject(pid) {
+  activepid = pid;
+  activeProject = projectObj[pid].projectName;
+  activeClient = projectObj[pid].client;
+  console.log(
+    "Selected new active project: ",
+    pid,
+    activeProject,
+    activeClient
+  );
   db.ref(userRef + "/state").update({
-    project: project,
-    client: client,
+    pid: pid,
   });
-  console.log(activeProject);
+  console.log("activepid: ", activepid, activeProject, activeClient);
   hide(projectmodal);
 }
 
@@ -737,12 +728,81 @@ function deleteEntry(key) {
 //DOWNLOAD TRIGGER
 var invoice = document.getElementById("invoicebtn");
 invoice.onclick = function () {
+  // if (confirm("Invoice selected entries?")) {
   console.log("invoicing....");
+  // var itemsFormatted;
+  collectEntries();
   exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
+  // }
 };
+
+//collect Entries
+function collectEntries() {
+  var keysToInvoice = {};
+  var checkboxes = document.querySelectorAll("input[type=checkbox]");
+  checkboxes.forEach((checkbox) => {
+    var entrykey = checkbox.dataset.entrykey;
+    if (checkbox.checked && entrykey) {
+      var path = entrykey;
+      keysToInvoice[path] = null;
+    }
+  });
+  var numberOfEntries = Object.keys(keysToInvoice).length;
+  if (numberOfEntries > 1) {
+    var confirmText = "Invoice " + numberOfEntries + " entries?";
+  } else if (numberOfEntries == 1 && checkboxes[0].checked) {
+    return;
+  } else if (numberOfEntries == 1) {
+    var confirmText = "Invoice Entry?";
+  }
+  if (confirm(confirmText)) {
+    console.log("Invoicing:", keysToInvoice);
+
+    //make object with only checked entries and their new pid
+    //SEPARATE to MULTIPLE OBJs for EACH PROJECT
+
+    // COPY to INVOICED
+    var uninvoicedObj = {};
+    db.ref(userRef + "/uninvoiced").once("value", function (snap) {
+      console.log("entries obj:", snap.val());
+      Object.keys(keysToInvoice).forEach((key) => {
+        console.log("key to move: ", key, snap.val()[key]);
+        // console.log(key.val());
+        var invoicedEntry = snap.val()[key];
+        invoicedEntry.invoiced = {
+          ".sv": "timestamp",
+        };
+        uninvoicedObj[key] = invoicedEntry;
+      });
+      console.log("uninvoicedObj: ", uninvoicedObj);
+      var invoiceTimestamp = new Date();
+      console.log("invoice timestamp: ", invoiceTimestamp);
+      db.ref(userRef + "/invoiced/" + invoiceTimestamp).set(uninvoicedObj);
+      console.log("did it work?");
+    });
+    // REMOVE from UNINVOICED
+    db.ref(userRef + "/uninvoiced").update(keysToInvoice);
+  } else {
+    console.log("bulk delete cancelled");
+  }
+  console.log(uninvoicedObj);
+  var entriesArray = Object.values(uninvoicedObj);
+  // var entriesArray;
+  // for (key in uninvoicedObj) {
+  //   console.log(uninvoicedObj.key);
+  //   entriesArray.push(uninvoicedObj.key);
+  // }
+  console.log(entriesArray);
+  itemsNotFormatted = entriesArray;
+  var itemsFormatted = formatData(itemsNotFormatted);
+  console.log(itemsFormatted);
+  //CREATE file TITLE
+  // fileTitle = projectObj.pid.projectName + 'for' + projectObj.pid.client
+}
 
 //create CSV
 function convertToCSV(objArray) {
+  // console.log(objArray);
   var array = typeof objArray != "object" ? JSON.parse(objArray) : objArray;
   var str = "";
 
@@ -757,6 +817,7 @@ function convertToCSV(objArray) {
     str += line + "\r\n";
   }
 
+  // console.log(str);
   return str;
 }
 
@@ -793,49 +854,69 @@ function exportCSVFile(headers, items, fileTitle) {
 }
 
 var headers = {
-  model: "Phone Model".replace(/,/g, ""), // remove commas to avoid errors
-  chargers: "Chargers",
-  cases: "Cases",
-  earphones: "Earphones",
+  // model: "Phone Model".replace(/,/g, ""), // remove commas to avoid errors
+  // chargers: "Chargers",
+  // cases: "Cases",
+  // earphones: "Earphones",
+  date: "Date",
+  hours: "Hours",
+  starttime: "Start Time",
+  stoptime: "Stop Time",
+  // notes: "notes",
 };
 
-itemsNotFormatted = [
-  {
-    model: "Samsung S7",
-    chargers: "55",
-    cases: "56",
-    earphones: "57",
-    scratched: "2",
-  },
-  {
-    model: "Pixel XL",
-    chargers: "77",
-    cases: "78",
-    earphones: "79",
-    scratched: "4",
-  },
-  {
-    model: "iPhone 7",
-    chargers: "88",
-    cases: "89",
-    earphones: "90",
-    scratched: "6",
-  },
-];
+// itemsNotFormatted = [
+//   {
+//     model: "Samsung S7",
+//     chargers: "55",
+//     cases: "56",
+//     earphones: "57",
+//     scratched: "2",
+//   },
+//   {
+//     model: "Pixel XL",
+//     chargers: "77",
+//     cases: "78",
+//     earphones: "79",
+//     scratched: "4",
+//   },
+//   {
+//     model: "iPhone 7",
+//     chargers: "88",
+//     cases: "89",
+//     earphones: "90",
+//     scratched: "6",
+//   },
+// ];
 
 var itemsFormatted = [];
 
 // format the data
-itemsNotFormatted.forEach((item) => {
-  itemsFormatted.push({
-    model: item.model.replace(/,/g, ""), // remove commas to avoid errors,
-    chargers: item.chargers,
-    cases: item.cases,
-    earphones: item.earphones,
+function formatData(data) {
+  itemsNotFormatted.forEach((item) => {
+    itemsFormatted.push({
+      // model: item.model.replace(/,/g, ""), // remove commas to avoid errors,
+      // chargers: item.chargers,
+      // cases: item.cases,
+      // earphones: item.earphones,
+      date: item.date,
+      hours: toHours(item.hours),
+      starttime: item.starttime ? timeFromUnix(item.starttime) : "",
+      stoptime: item.stoptime ? timeFromUnix(item.stoptime) : "",
+      // notes: item.notes,
+    });
   });
-});
+}
 
-var fileTitle = "orders"; // or 'my-unique-title'
+function timeFromUnix(unix) {
+  var date = new Date(unix);
+  var hours = ("0" + date.getHours()).slice(-2);
+  var minutes = ("0" + date.getMinutes()).slice(-2);
+  var time = hours + ":" + minutes;
+  return time;
+}
+
+var fileTitle = "Invoice"; // or 'Timestamp + Client + Project'
 
 function twoDigits(time) {
   return (time < 10 ? "0" : "") + time;
