@@ -386,6 +386,8 @@ window.onclick = function (event) {
     hide(addproject);
   } else if (event.target == bulkEditModal) {
     hide(bulkEditModal);
+  } else if (event.target == invoiceModal) {
+    hide(invoiceModal);
   }
 };
 
@@ -726,15 +728,19 @@ function deleteEntry(key) {
   }
 }
 //DOWNLOAD TRIGGER
-var invoice = document.getElementById("invoicebtn");
-invoice.onclick = function () {
+var invoicebtn = document.getElementById("invoicebtn");
+var invoiceModal = document.getElementById("invoice-modal");
+invoicebtn.onclick = function () {
   // if (confirm("Invoice selected entries?")) {
   console.log("invoicing....");
+  show(invoiceModal);
   // var itemsFormatted;
   collectEntries();
   exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
   // }
 };
+
+show(invoiceModal);
 
 //collect Entries
 function collectEntries() {
@@ -783,8 +789,9 @@ function collectEntries() {
     // REMOVE from UNINVOICED
     db.ref(userRef + "/uninvoiced").update(keysToInvoice);
   } else {
-    console.log("bulk delete cancelled");
+    console.log("invoice cancelled");
   }
+  console.log("uninvoicedObj:VVVVVVVVVVV");
   console.log(uninvoicedObj);
   var entriesArray = Object.values(uninvoicedObj);
   // var entriesArray;
