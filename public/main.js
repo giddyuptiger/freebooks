@@ -123,7 +123,7 @@ firebase.auth().onAuthStateChanged(function (user) {
         }
         if (activeProject) {
           // activeProject =
-          projectbtn.innerHTML = "Project: " + activeProject;
+          projectbtn.innerHTML = "Project: " + activeroject;
         }
         starttime = snapshot.val().starttime;
       } catch {
@@ -164,7 +164,8 @@ logout.onclick = function () {
 function liveHours() {
   // console.log("1");
   db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
-    hoursArray = [["Date", "Client", "Project", "Hours", "key"]];
+    hoursArray = [];
+    hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
     // var entries =
     // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
     hours.innerHTML = "";
@@ -208,6 +209,8 @@ function liveHours() {
       //   entries += "</tr>";
       // }
     });
+      hoursArray.reverse();
+      hoursArray.unshift(hoursHeaders);
     // console.log(hoursArray);
     for (var i = 0; i < hoursArray.length; i++) {
       var row = document.createElement("tr");
@@ -418,6 +421,10 @@ function liveProjects() {
     projectObj = snapshot.val();
     console.log("projectObj:VVVVVVVV");
     console.log(projectObj);
+    var projectListLength = projectEntry.options.length;
+    for (i = projectListLength - 1; i >=0; i--) {
+      projectEntry.options[i] = null;
+    }
     if (snapshot.val()) {
       // console.log(snapshot.val());
       snapshot.forEach(function (projectKey) {
@@ -740,7 +747,7 @@ invoicebtn.onclick = function () {
   // }
 };
 
-show(invoiceModal);
+// show(invoiceModal);
 
 //collect Entries
 function collectEntries() {
@@ -858,6 +865,10 @@ function exportCSVFile(headers, items, fileTitle) {
       document.body.removeChild(link);
     }
   }
+  console.log("csv downloaded I think");
+//clear itemsFormatted
+itemsFormatted = [];
+hide(invoiceModal);
 }
 
 var headers = {
@@ -896,8 +907,8 @@ var headers = {
 //   },
 // ];
 
-var itemsFormatted = [];
 
+var itemsFormatted = [];
 // format the data
 function formatData(data) {
   itemsNotFormatted.forEach((item) => {
@@ -913,6 +924,7 @@ function formatData(data) {
       // notes: item.notes,
     });
   });
+  console.log(itemsFormatted);
 }
 
 function timeFromUnix(unix) {
@@ -936,3 +948,7 @@ function toHours(ms) {
 function toMS(hours) {
   return hours * 1000 * 60 * 60;
 }
+
+// function sortHours(array) {
+
+// }
