@@ -82,7 +82,15 @@
         </div>
       </div>
 <div id="report">
-<p>UNINVOICED TIME</p>
+  <div class="tab">
+  <button class="tablinks" onclick="openTab(event, 'uninvoiced-tab')">Uninvoiced Time</button>
+  <button class="tablinks" onclick="openTab(event, 'invoices-tab')">Invoices</button>
+  <button class="tablinks" onclick="openTab(event, 'Tokyo')">Invoice</button>
+</div>
+
+<!-- Tab content -->
+<div id="uninvoiced-tab" class="tabcontent">
+<!-- <p>Uninvoiced Time</p> -->
 <button id="bulk-edit-btn">Edit All Selected Entries</button>
 <button id="bulk-delete-btn">Delete All Selected Entries</button>
 <div id="bulk-edit-modal" class="modal">
@@ -96,13 +104,32 @@
           <button id="submit-bulk-edit">Submit</button>
   </div>
 </div>
+      <table id="hours-table"></table>
+</div>
+
+<div id="invoices-tab" class="tabcontent">
+      <table id="invoices-table"></table>
+</div>
+
+<div id="Tokyo" class="tabcontent">
+  <h3>Tokyo</h3>
+  <p>Tokyo is the capital of Japan.</p>
+</div>
 <div id="invoice-modal" class="modal">
   <div class="modal-content">
-    Invoice:
-
+    <div>Select a project to invoice:</div>
+          <label for="project-to-invoice">Project</label><br />
+          <select name="project" id="project-to-invoice"></select>
+          <br/>
+          <label for="from-date:">From:</label><br />
+          <input type="date" id="from-date" name="date" min="2020-01-01" />
+          <br/>
+          <label for="to-date">To:</label><br />
+          <input type="date" id="to-date" name="date" min="2020-01-01" />
+          <br/>
+          <button id="invoice-project-btn">Invoice</button>
   </div>
 </div>
-      <table id="hours-table"></table>
 </div>
     </div>
     <link rel="stylesheet" href="main.css" />

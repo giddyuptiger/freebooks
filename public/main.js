@@ -72,16 +72,10 @@ const keyBox = document.getElementById("key");
 var db = firebase.database();
 var activepid, activeProject, activeClient;
 var projectObj = Object;
+var uninvoicedSnapshot;
 timer.addEventListener("click", startTimer);
 var projectmodal = document.getElementById("projectmodal");
 var projectbtn = document.getElementById("projectbtn");
-// var uid = 'jeremy';
-// if (uid) {
-// var userRef = "users/" + uid;
-//   console.log("hi", uid);
-// } else {
-//   userRef = "users/jeremy";
-// }
 var editingKey;
 var starttime;
 var hoursArray;
@@ -97,6 +91,7 @@ firebase.auth().onAuthStateChanged(function (user) {
     show(logout);
     liveProjects();
     liveHours();
+    liveInvoices();
     db.ref(userRef + "/state").on("value", function (snapshot) {
       try {
         // console.log("trying to read /state");
@@ -123,11 +118,11 @@ firebase.auth().onAuthStateChanged(function (user) {
         }
         if (activeProject) {
           // activeProject =
-          projectbtn.innerHTML = "Project: " + activeroject;
+          projectbtn.innerHTML = "Project: " + activeProject;
         }
         starttime = snapshot.val().starttime;
-      } catch {
-        console.log("couldn't reach active, creating it now...");
+      } catch (err){
+        console.log("couldn't reach active, creating it now...", err);
         db.ref(userRef + "/state").set({ active: false });
       }
     });
@@ -164,6 +159,7 @@ logout.onclick = function () {
 function liveHours() {
   // console.log("1");
   db.ref(userRef + "/uninvoiced").on("value", function (snapshot) {
+    uninvoicedSnapshot = snapshot;
     hoursArray = [];
     hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
     // var entries =
@@ -185,8 +181,7 @@ function liveHours() {
         rowArray.push(cell.project + " (dated entry)");
       }
       rowArray
-        .push(Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4)
-        .toFixed(2);
+        .push((cell.hours / 1000 / 60 / 60).toFixed(2));
       rowArray.push(entry.key);
       hoursArray.push(rowArray);
       // console.log(rowArray, hoursArray);
@@ -443,6 +438,7 @@ function liveProjects() {
         option.setAttribute("data-client", clientName);
         option.setAttribute("data-project", projectName);
         var optionb = option.cloneNode(true);
+        var optionc = option.cloneNode(true);
         // projectEntry.appendChild(option).setAttribute('data-client', clientName);
         // projectEntry.appendChild(option).setAttribute('data-project', projectName);
         projectEntry.appendChild(option);
@@ -452,6 +448,7 @@ function liveProjects() {
         // optionb.setAttribute('data-client', clientName)
         // optionb.setAttribute('data-project', projectName);
         projectEdit.appendChild(optionb);
+        projectToInvoice.appendChild(optionc);
         var dataClient = "'data-client'";
         projectsHTML +=
           '<button id="' +
@@ -739,34 +736,60 @@ var invoicebtn = document.getElementById("invoicebtn");
 var invoiceModal = document.getElementById("invoice-modal");
 invoicebtn.onclick = function () {
   // if (confirm("Invoice selected entries?")) {
-  console.log("invoicing....");
+  // console.log("invoicing....");
   show(invoiceModal);
   // var itemsFormatted;
-  collectEntries();
-  exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
   // }
 };
 
+var invoiceProjectBtn = document.getElementById("invoice-project-btn");
+invoiceProjectBtn.onclick = function() {
+  console.log("invoicing....");
+  collectEntries();
+}
+
 // show(invoiceModal);
+var projectToInvoice = document.getElementById("project-to-invoice");
+var fromDate = document.getElementById("from-date");
+var toDate = document.getElementById("to-date");
+
 
 //collect Entries
 function collectEntries() {
+var selectedPID = projectToInvoice.value;
+var from = fromDate.value;
+var to = toDate.value;
+console.log(selectedPID, 'from to: ', from, to);
   var keysToInvoice = {};
-  var checkboxes = document.querySelectorAll("input[type=checkbox]");
-  checkboxes.forEach((checkbox) => {
-    var entrykey = checkbox.dataset.entrykey;
-    if (checkbox.checked && entrykey) {
-      var path = entrykey;
-      keysToInvoice[path] = null;
-    }
-  });
+  // console.log(.5);
+  var allKeys = Object.keys(uninvoicedSnapshot.val());
+  console.log(allKeys);
+allKeys.forEach( (entry) => {
+  // console.log(entry.val().pid, selectedPID);
+  console.log(uninvoicedSnapshot.val()[entry]);
+if( uninvoicedSnapshot.val()[entry].pid == selectedPID ) {
+  // console.log(entry.val()[key]);
+keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
+// console.log(entry.val());
+}
+});
+console.log(keysToInvoice);
+  // var checkboxes = document.querySelectorAll("input[type=checkbox]");
+  // checkboxes.forEach((checkbox) => {
+  //   var entrykey = checkbox.dataset.entrykey;
+  //   if ( entrykey ) {
+  //     var path = entrykey;
+  //     keysToInvoice[path] = null;
+  //   }
+  // });
   var numberOfEntries = Object.keys(keysToInvoice).length;
+  var confirmText = "No time available to invoice"
   if (numberOfEntries > 1) {
-    var confirmText = "Invoice " + numberOfEntries + " entries?";
+    confirmText = "Invoice " + numberOfEntries + " entries?";
   } else if (numberOfEntries == 1 && checkboxes[0].checked) {
     return;
   } else if (numberOfEntries == 1) {
-    var confirmText = "Invoice Entry?";
+    confirmText = "Invoice Entry?";
   }
   if (confirm(confirmText)) {
     console.log("Invoicing:", keysToInvoice);
@@ -785,8 +808,11 @@ function collectEntries() {
         invoicedEntry.invoiced = {
           ".sv": "timestamp",
         };
-        uninvoicedObj[key] = invoicedEntry;
+        uninvoicedObj[entries][key] = invoicedEntry;
       });
+      console.log("uninvoicedObj: ", uninvoicedObj);
+      uninvoicedObj[pid] = selectedPID;
+      // uninvoicedObj[date] = date;
       console.log("uninvoicedObj: ", uninvoicedObj);
       var invoiceTimestamp = new Date();
       console.log("invoice timestamp: ", invoiceTimestamp);
@@ -812,6 +838,7 @@ function collectEntries() {
   console.log(itemsFormatted);
   //CREATE file TITLE
   // fileTitle = projectObj.pid.projectName + 'for' + projectObj.pid.client
+  exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
 }
 
 //create CSV
@@ -952,3 +979,108 @@ function toMS(hours) {
 // function sortHours(array) {
 
 // }
+
+function openTab(evt, tabName) {
+  // Declare all variables
+  var i, tabcontent, tablinks;
+
+  // Get all elements with class="tabcontent" and hide them
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+
+  // Get all elements with class="tablinks" and remove the class "active"
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+
+  // Show the current tab, and add an "active" class to the button that opened the tab
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+
+//invoices tab
+var invoicesTable = document.getElementById("invoices-table")
+function liveInvoices () {
+  console.log('liveInvoices running');
+db.ref(userRef + "/invoiced").on("value", function (snapshot) {
+    invoicedSnapshot = snapshot;
+    invoicesArray = [];
+    // hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
+    var invoicesHeaders = ["Date", "Project", "Client", "Hours"];
+    // var entries =
+    // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
+    invoicesTable.innerHTML = "";
+    snapshot.forEach(function (entry) {
+      var rowArray = [];
+      var cell = entry.val();
+      console.log(cell[key]);
+      var date = new Date(cell[key]);
+      rowArray.push(cell.date);
+      if (cell.pid !== undefined) {
+        var pid = cell.pid;
+        var project = projectObj[pid].projectName;
+        var client = projectObj[pid].client;
+        rowArray.push(client);
+        rowArray.push(project);
+      } else {
+        rowArray.push(cell.client + " (dated entry)");
+        rowArray.push(cell.project + " (dated entry)");
+      }
+      rowArray
+        .push((cell.hours / 1000 / 60 / 60).toFixed(2));
+      rowArray.push(entry.key);
+      invoicesArray.push(rowArray);
+      // console.log(rowArray, hoursArray);
+      //OLD HOURS TABLE
+      // if (cell.hours) {
+      //   entries += "<tr>";
+      //   entries += "<td>" + cell.date + "<td>";
+      //   entries += "<td>" + cell.project + "<td>";
+      //   var time = (Math.round((cell.hours / 1000 / 60 / 60) * 4) / 4).toFixed(
+      //     2
+      //   );
+      //   entries += "<td>" + time + "<td>";
+      //   entries += '<td style="display:none">' + entry.key + "<td>";
+      //   entries +=
+      //     '<td> <button id="' +
+      //     entry.key +
+      //     '" onClick="editEntry(this.id)"> ✎ </button></td> <td><button id="' +
+      //     entry.key +
+      //     '" onClick="deleteEntry(this.id)"> X </button> </td>';
+      //   entries += "</tr>";
+      // }
+    });
+      invoicesArray.reverse();
+      invoicesArray.unshift(invoicesHeaders);
+    // console.log(invoicesArray);
+    for (var i = 0; i < invoicesArray.length; i++) {
+      var row = document.createElement("tr");
+      row.innerHTML +=
+        '<td><input type="checkbox" data-entrykey="' +
+        invoicesArray[i][4] +
+        '"></td>';
+      for (var j = 0; j < invoicesArray[0].length + 1; j++) {
+        var cell = document.createElement("td");
+        cell.innerHTML += invoicesArray[i][j];
+        if (j === invoicesArray[i].length - 1) {
+          cell.style.display = "none";
+        }
+        if (j === invoicesArray[i].length) {
+          cell.innerHTML =
+            '<button id="' +
+            invoicesArray[i][4] +
+            '" onClick="editEntry(this.id)"> ✎ </button><button id="' +
+            invoicesArray[i][4] +
+            '" onClick="deleteEntry(this.id)"> X </button>';
+        }
+        row.appendChild(cell);
+      }
+      invoicesTable.appendChild(row);
+    }
+    // console.log("invoices innerHTML:", invoicesTable);
+    // oldHoursTable.innerHTML = entries;
+  });
+}
