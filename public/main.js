@@ -72,7 +72,7 @@ const keyBox = document.getElementById("key");
 var db = firebase.database();
 var activepid, activeProject, activeClient;
 var projectObj = Object;
-var uninvoicedSnapshot;
+var uninvoicedSnapshot, invoicedSnapshot;
 timer.addEventListener("click", startTimer);
 var projectmodal = document.getElementById("projectmodal");
 var projectbtn = document.getElementById("projectbtn");
@@ -766,14 +766,15 @@ console.log(selectedPID, 'from to: ', from, to);
   console.log(allKeys);
 allKeys.forEach( (entry) => {
   // console.log(entry.val().pid, selectedPID);
-  console.log(uninvoicedSnapshot.val()[entry]);
+  // console.log(uninvoicedSnapshot.val()[entry]);
 if( uninvoicedSnapshot.val()[entry].pid == selectedPID ) {
   // console.log(entry.val()[key]);
 keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
 // console.log(entry.val());
 }
 });
-console.log(keysToInvoice);
+
+// console.log(keysToInvoice);
   // var checkboxes = document.querySelectorAll("input[type=checkbox]");
   // checkboxes.forEach((checkbox) => {
   //   var entrykey = checkbox.dataset.entrykey;
@@ -801,17 +802,27 @@ console.log(keysToInvoice);
     var uninvoicedObj = {};
     db.ref(userRef + "/uninvoiced").once("value", function (snap) {
       console.log("entries obj:", snap.val());
+      // console.log(keysToInvoice);
+      var totaltime = 0
       Object.keys(keysToInvoice).forEach((key) => {
-        console.log("key to move: ", key, snap.val()[key]);
+        // console.log("key to move: ", key, snap.val()[key]);
         // console.log(key.val());
         var invoicedEntry = snap.val()[key];
-        invoicedEntry.invoiced = {
-          ".sv": "timestamp",
-        };
-        uninvoicedObj[entries][key] = invoicedEntry;
+        // var hours = snap.key.hours
+        console.log(snap.key.val().hours);
+        totaltime += snap.val().key.hours;
+        // console.log(invoicedEntry);
+        // invoicedEntry.invoiced = {
+        //   ".sv": "timestamp",
+        // };
+        // console.log(uninvoicedObj);
+        uninvoicedObj[key] = invoicedEntry;
+        // console.log(uninvoicedObj);
       });
+      console.log(totaltime);
       console.log("uninvoicedObj: ", uninvoicedObj);
-      uninvoicedObj[pid] = selectedPID;
+      uninvoicedObj["pid"] = selectedPID;
+      uninvoicedObj["totaltime"] = totaltime;
       // uninvoicedObj[date] = date;
       console.log("uninvoicedObj: ", uninvoicedObj);
       var invoiceTimestamp = new Date();
@@ -1009,16 +1020,19 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
     invoicedSnapshot = snapshot;
     invoicesArray = [];
     // hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
-    var invoicesHeaders = ["Date", "Project", "Client", "Hours"];
+    var invoicesHeaders = ["Invoice Date", "Project", "Client", "Hours"];
     // var entries =
     // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
     invoicesTable.innerHTML = "";
     snapshot.forEach(function (entry) {
       var rowArray = [];
       var cell = entry.val();
-      console.log(cell[key]);
-      var date = new Date(cell[key]);
-      rowArray.push(cell.date);
+      console.log(entry.key);   
+      var invoiceDate = formatDate(entry.key);
+      // invoiceDate = ('0' + (1 + invoiceDate.getMonth())).slice(-2) + '/' + ('0' + invoiceDate.getDay()).slice(-2) + '/' + String(invoiceDate.getFullYear()) + ' ' + ('0' + invoiceDate.getHours()).slice(-2) + ':' + ('0' + invoiceDate.getMinutes()).slice(-2)
+      console.log(invoiceDate);
+      rowArray.push(invoiceDate);
+      var invoicedHours = cell.totaltime ? (cell.totaltime / 1000 / 60 / 60).toFixed(2) : 'NA'
       if (cell.pid !== undefined) {
         var pid = cell.pid;
         var project = projectObj[pid].projectName;
@@ -1029,8 +1043,8 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
         rowArray.push(cell.client + " (dated entry)");
         rowArray.push(cell.project + " (dated entry)");
       }
-      rowArray
-        .push((cell.hours / 1000 / 60 / 60).toFixed(2));
+      rowArray.push(invoicedHours);
+      // console.log(invoicedHours);
       rowArray.push(entry.key);
       invoicesArray.push(rowArray);
       // console.log(rowArray, hoursArray);
@@ -1053,15 +1067,15 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
       //   entries += "</tr>";
       // }
     });
-      invoicesArray.reverse();
+      invoicesArray.sort().reverse();
       invoicesArray.unshift(invoicesHeaders);
     // console.log(invoicesArray);
     for (var i = 0; i < invoicesArray.length; i++) {
       var row = document.createElement("tr");
-      row.innerHTML +=
-        '<td><input type="checkbox" data-entrykey="' +
-        invoicesArray[i][4] +
-        '"></td>';
+      // row.innerHTML +=
+      //   '<td><input type="checkbox" data-entrykey="' +
+      //   invoicesArray[i][4] +
+      //   '"></td>';
       for (var j = 0; j < invoicesArray[0].length + 1; j++) {
         var cell = document.createElement("td");
         cell.innerHTML += invoicesArray[i][j];
@@ -1072,9 +1086,7 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
           cell.innerHTML =
             '<button id="' +
             invoicesArray[i][4] +
-            '" onClick="editEntry(this.id)"> ✎ </button><button id="' +
-            invoicesArray[i][4] +
-            '" onClick="deleteEntry(this.id)"> X </button>';
+            '" onClick="undoInvoice(this.id)"> UNDO </button>';
         }
         row.appendChild(cell);
       }
@@ -1083,4 +1095,30 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
     // console.log("invoices innerHTML:", invoicesTable);
     // oldHoursTable.innerHTML = entries;
   });
+}
+
+
+function undoInvoice(id) {
+console.log("undoing Invoice" + id);
+}
+
+var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+function formatDate(date) {
+  var d = new Date(date);
+  var month = ('0' + (d.getMonth() + 1)).slice(-2);
+  var day = ('0' + d.getDate()).slice(-2);
+  var year = d.getFullYear();
+  var hours = ('0' + d.getHours()).slice(-2);
+  var minutes = ('0' + d.getMinutes()).slice(-2);
+  var seconds = ('0' + d.getSeconds()).slice(-2);
+  var ampm = "a";
+  if (hours >= 12) {
+    hours = hours - 12;
+    ampm = "p";
+  }
+  if (hours == 0) {
+    hours = 12;
+  }
+  return year + '/' + month + '/' + day + ' ' + hours + ':' + minutes + ampm
 }
