@@ -121,7 +121,7 @@ firebase.auth().onAuthStateChanged(function (user) {
           projectbtn.innerHTML = "Project: " + activeProject;
         }
         starttime = snapshot.val().starttime;
-      } catch (err){
+      } catch (err) {
         console.log("couldn't reach active, creating it now...", err);
         db.ref(userRef + "/state").set({ active: false });
       }
@@ -180,8 +180,7 @@ function liveHours() {
         rowArray.push(cell.client + " (dated entry)");
         rowArray.push(cell.project + " (dated entry)");
       }
-      rowArray
-        .push((cell.hours / 1000 / 60 / 60).toFixed(2));
+      rowArray.push((cell.hours / 1000 / 60 / 60).toFixed(2));
       rowArray.push(entry.key);
       hoursArray.push(rowArray);
       // console.log(rowArray, hoursArray);
@@ -204,8 +203,8 @@ function liveHours() {
       //   entries += "</tr>";
       // }
     });
-      hoursArray.reverse();
-      hoursArray.unshift(hoursHeaders);
+    hoursArray.reverse();
+    hoursArray.unshift(hoursHeaders);
     // console.log(hoursArray);
     for (var i = 0; i < hoursArray.length; i++) {
       var row = document.createElement("tr");
@@ -417,7 +416,7 @@ function liveProjects() {
     console.log("projectObj:VVVVVVVV");
     console.log(projectObj);
     var projectListLength = projectEntry.options.length;
-    for (i = projectListLength - 1; i >=0; i--) {
+    for (i = projectListLength - 1; i >= 0; i--) {
       projectEntry.options[i] = null;
     }
     if (snapshot.val()) {
@@ -706,26 +705,30 @@ function editEntry(key) {
 function deleteEntry(key) {
   if (confirm("Are you sure you want to delete?")) {
     console.log("deleting: " + key);
-    db.ref(userRef + "/uninvoiced" + "/" + key).once("value", function (
-      snapshot
-    ) {
-      // oldHours = toHours(snapshot.val()[key].hours);
-      // oldDate = snapshot.val()[key].date;
-      // oldProject = snapshot.val()[key].project;
-      // console.log(key, ': ', oldHours, ', ', oldDate, ', ', oldProject);
-      db.ref(userRef + "/deleted/" + key).set(snapshot.val(), function (error) {
-        if (!error) {
-          db.ref(userRef + "/deleted/" + key).update({
-            deleted: {
-              ".sv": "timestamp",
-            },
-          });
-          db.ref(userRef + "/uninvoiced" + "/" + key).remove();
-        } else if (typeof console !== "undefined" && console.error) {
-          console.error(error);
-        }
-      });
-    });
+    db.ref(userRef + "/uninvoiced" + "/" + key).once(
+      "value",
+      function (snapshot) {
+        // oldHours = toHours(snapshot.val()[key].hours);
+        // oldDate = snapshot.val()[key].date;
+        // oldProject = snapshot.val()[key].project;
+        // console.log(key, ': ', oldHours, ', ', oldDate, ', ', oldProject);
+        db.ref(userRef + "/deleted/" + key).set(
+          snapshot.val(),
+          function (error) {
+            if (!error) {
+              db.ref(userRef + "/deleted/" + key).update({
+                deleted: {
+                  ".sv": "timestamp",
+                },
+              });
+              db.ref(userRef + "/uninvoiced" + "/" + key).remove();
+            } else if (typeof console !== "undefined" && console.error) {
+              console.error(error);
+            }
+          }
+        );
+      }
+    );
   } else {
     //Do Nothing
     console.log("Delete Canceled");
@@ -743,38 +746,37 @@ invoicebtn.onclick = function () {
 };
 
 var invoiceProjectBtn = document.getElementById("invoice-project-btn");
-invoiceProjectBtn.onclick = function() {
+invoiceProjectBtn.onclick = function () {
   console.log("invoicing....");
   collectEntries();
-}
+};
 
 // show(invoiceModal);
 var projectToInvoice = document.getElementById("project-to-invoice");
 var fromDate = document.getElementById("from-date");
 var toDate = document.getElementById("to-date");
 
-
 //collect Entries
 function collectEntries() {
-var selectedPID = projectToInvoice.value;
-var from = fromDate.value;
-var to = toDate.value;
-console.log(selectedPID, 'from to: ', from, to);
+  var selectedPID = projectToInvoice.value;
+  var from = fromDate.value;
+  var to = toDate.value;
+  console.log(selectedPID, "from to: ", from, to);
   var keysToInvoice = {};
   // console.log(.5);
   var allKeys = Object.keys(uninvoicedSnapshot.val());
   console.log(allKeys);
-allKeys.forEach( (entry) => {
-  // console.log(entry.val().pid, selectedPID);
-  // console.log(uninvoicedSnapshot.val()[entry]);
-if( uninvoicedSnapshot.val()[entry].pid == selectedPID ) {
-  // console.log(entry.val()[key]);
-keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
-// console.log(entry.val());
-}
-});
+  allKeys.forEach((entry) => {
+    // console.log(entry.val().pid, selectedPID);
+    // console.log(uninvoicedSnapshot.val()[entry]);
+    if (uninvoicedSnapshot.val()[entry].pid == selectedPID) {
+      // console.log(entry.val()[key]);
+      keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
+      // console.log(entry.val());
+    }
+  });
 
-// console.log(keysToInvoice);
+  // console.log(keysToInvoice);
   // var checkboxes = document.querySelectorAll("input[type=checkbox]");
   // checkboxes.forEach((checkbox) => {
   //   var entrykey = checkbox.dataset.entrykey;
@@ -784,7 +786,7 @@ keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
   //   }
   // });
   var numberOfEntries = Object.keys(keysToInvoice).length;
-  var confirmText = "No time available to invoice"
+  var confirmText = "No time available to invoice";
   if (numberOfEntries > 1) {
     confirmText = "Invoice " + numberOfEntries + " entries?";
   } else if (numberOfEntries == 1 && checkboxes[0].checked) {
@@ -803,7 +805,7 @@ keysToInvoice[entry] = uninvoicedSnapshot.val()[entry];
     db.ref(userRef + "/uninvoiced").once("value", function (snap) {
       console.log("entries obj:", snap.val());
       // console.log(keysToInvoice);
-      var totaltime = 0
+      var totaltime = 0;
       Object.keys(keysToInvoice).forEach((key) => {
         // console.log("key to move: ", key, snap.val()[key]);
         // console.log(key.val());
@@ -904,9 +906,9 @@ function exportCSVFile(headers, items, fileTitle) {
     }
   }
   console.log("csv downloaded I think");
-//clear itemsFormatted
-itemsFormatted = [];
-hide(invoiceModal);
+  //clear itemsFormatted
+  itemsFormatted = [];
+  hide(invoiceModal);
 }
 
 var headers = {
@@ -944,7 +946,6 @@ var headers = {
 //     scratched: "6",
 //   },
 // ];
-
 
 var itemsFormatted = [];
 // format the data
@@ -991,6 +992,19 @@ function toMS(hours) {
 
 // }
 
+function closeTab(e, tabName) {
+  var i, tabcontent, tablink;
+
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+}
+
 function openTab(evt, tabName) {
   // Declare all variables
   var i, tabcontent, tablinks;
@@ -1013,26 +1027,34 @@ function openTab(evt, tabName) {
 }
 
 //invoices tab
-var invoicesTable = document.getElementById("invoices-table")
-function liveInvoices () {
-  console.log('liveInvoices running');
-db.ref(userRef + "/invoiced").on("value", function (snapshot) {
+var invoicesTable = document.getElementById("invoices-table");
+function liveInvoices() {
+  console.log("liveInvoices running");
+  db.ref(userRef + "/invoiced").on("value", function (snapshot) {
     invoicedSnapshot = snapshot;
     invoicesArray = [];
     // hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
-    var invoicesHeaders = ["Invoice Date", "Project", "Client", "Hours"];
+    var invoicesHeaders = [
+      "Invoice Date",
+      "Project",
+      "Client",
+      "Hours",
+      "UNDO",
+    ];
     // var entries =
     // "<tr><td>Date</td><td>Client</td><td>Project</td><td>Hours</td></tr>";
     invoicesTable.innerHTML = "";
     snapshot.forEach(function (entry) {
       var rowArray = [];
       var cell = entry.val();
-      console.log(entry.key);   
+      console.log(entry.key);
       var invoiceDate = formatDate(entry.key);
       // invoiceDate = ('0' + (1 + invoiceDate.getMonth())).slice(-2) + '/' + ('0' + invoiceDate.getDay()).slice(-2) + '/' + String(invoiceDate.getFullYear()) + ' ' + ('0' + invoiceDate.getHours()).slice(-2) + ':' + ('0' + invoiceDate.getMinutes()).slice(-2)
       console.log(invoiceDate);
       rowArray.push(invoiceDate);
-      var invoicedHours = cell.totaltime ? (cell.totaltime / 1000 / 60 / 60).toFixed(2) : 'NA'
+      var invoicedHours = cell.totaltime
+        ? (cell.totaltime / 1000 / 60 / 60).toFixed(2)
+        : "NA";
       if (cell.pid !== undefined) {
         var pid = cell.pid;
         var project = projectObj[pid].projectName;
@@ -1067,8 +1089,8 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
       //   entries += "</tr>";
       // }
     });
-      invoicesArray.sort().reverse();
-      invoicesArray.unshift(invoicesHeaders);
+    invoicesArray.sort().reverse();
+    invoicesArray.unshift(invoicesHeaders);
     // console.log(invoicesArray);
     for (var i = 0; i < invoicesArray.length; i++) {
       var row = document.createElement("tr");
@@ -1097,21 +1119,33 @@ db.ref(userRef + "/invoiced").on("value", function (snapshot) {
   });
 }
 
-
 function undoInvoice(id) {
-console.log("undoing Invoice" + id);
+  console.log("undoing Invoice" + id);
 }
 
-var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+var months = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
 function formatDate(date) {
   var d = new Date(date);
-  var month = ('0' + (d.getMonth() + 1)).slice(-2);
-  var day = ('0' + d.getDate()).slice(-2);
+  var month = ("0" + (d.getMonth() + 1)).slice(-2);
+  var day = ("0" + d.getDate()).slice(-2);
   var year = d.getFullYear();
-  var hours = ('0' + d.getHours()).slice(-2);
-  var minutes = ('0' + d.getMinutes()).slice(-2);
-  var seconds = ('0' + d.getSeconds()).slice(-2);
+  var hours = ("0" + d.getHours()).slice(-2);
+  var minutes = ("0" + d.getMinutes()).slice(-2);
+  var seconds = ("0" + d.getSeconds()).slice(-2);
   var ampm = "a";
   if (hours >= 12) {
     hours = hours - 12;
@@ -1120,5 +1154,5 @@ function formatDate(date) {
   if (hours == 0) {
     hours = 12;
   }
-  return year + '/' + month + '/' + day + ' ' + hours + ':' + minutes + ampm
+  return year + "/" + month + "/" + day + " " + hours + ":" + minutes + ampm;
 }
