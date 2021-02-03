@@ -126,7 +126,10 @@ button {
 #settingsbtn {
   /* #enterhoursbtn { */
   float: left;
-  position: relative;
+  position#challenge-input {
+    /* height */
+  }
+  :relative ;
   display: inline-block;
 }
 
@@ -157,14 +160,19 @@ button {
 }
 
 .projectselectbtns {
-  background-color: rgba(181, 250, 153, 0.4);
+  /* background-color: rgba(181, 250, 153, 0.4); */
   border-style: solid;
   width: 40%;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 .projectselectbtns:hover {
   background-color: rgb(188, 228, 206);
+}
+
+#projectlist {
+  display: flex;
+  flex-wrap: wrap;
 }
 
 table {

@@ -73,6 +73,7 @@ const keyBox = document.getElementById("key");
 var db = firebase.database();
 var activepid, activeProject, activeClient;
 var activeChallenges = [];
+var activeChallenge = [];
 var projectObj = Object;
 var uninvoicedSnapshot, invoicedSnapshot;
 timer.addEventListener("click", startTimer);
@@ -104,7 +105,10 @@ firebase.auth().onAuthStateChanged(function (user) {
         active = snapshot.val().active;
         activepid = snapshot.val().pid;
         starttime = snapshot.val().starttime;
-        // activeProject = projectObj[activepid][projecName];
+        console.log("activePid: ", activepid);
+        // console.log("PROJECTactive: ", projectObj[activepid]);
+        // console.log("PROJECTactive: ", projectObj[activepid].projectName);
+        activeProject = projectObj[activepid].projectName;
         activeChallenges = snapshot.val().challenges
           ? snapshot.val().challenges
           : [];
@@ -289,7 +293,8 @@ function startTimer() {
           /*THEN START TIMER*/ timer.innerHTML = "00:00:00";
           const currentTime = new Date();
           var newKey = db.ref(userRef).push().key;
-          console.log("2");
+          // console.log("2");
+          // activeChallenge = [activeChallenges[activeChallenges.length - 1]];
           db.ref(userRef + "/state").set({
             active: true,
             key: newKey,
@@ -297,7 +302,7 @@ function startTimer() {
               ".sv": "timestamp",
             },
             pid: activepid,
-            challenges: activeChallenges,
+            challenges: activeChallenge,
             // client: activeClient,
           });
           // db.ref(userRef + "/uninvoiced" + "/" + newKey).set({
@@ -409,6 +414,7 @@ function liveProjects() {
   db.ref(userRef + "/projects").on("value", function (snapshot) {
     var projectsHTML = "";
     projectObj = snapshot.val();
+    // activeProject = projectObj
     console.log("projectObj:VVVVVVVV");
     console.log(projectObj);
     var projectListLength = projectEntry.options.length;
@@ -487,7 +493,18 @@ function selectProject(pid) {
 
 function deleteProject(projectKey) {
   if (confirm("Delete Project?")) {
-    db.ref(userRef + "/projects" + "/" + projectKey).remove();
+    db.ref(userRef + "/projects/" + projectKey).once("value", function (snap) {
+      db.ref(userRef + "/projects-deleted/" + projectKey).set(
+        snap.val(),
+        function (error) {
+          if (!error) {
+            db.ref(userRef + "/projects" + "/" + projectKey).remove();
+          } else if (typeof console !== "undefined" && console.error) {
+            console.error(error);
+          }
+        }
+      );
+    });
   } else {
     //Do Nothing
     console.log("Not Deleted");
@@ -548,11 +565,12 @@ challengeAcceptedbtn.onclick = () => {
     ? challengeInput
     : "What's the current challenge?";
   // challengeArr.push(challengeInput);
-  console.log(activeChallenges);
+  activeChallenge = [challengeInput];
   activeChallenges.push(challengeInput);
   active
     ? db.ref(userRef + "/state").update({ challenges: activeChallenges })
     : console.log("not active");
+  console.log(activeChallenges);
   // db.console.log("Challenges", activeChallenges);
 };
 
