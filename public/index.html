@@ -31,35 +31,55 @@
         </div>
         <!-- <div><button style="width: 4rem">-</button></div> -->
       </div>
-      <div id="firebaseui-auth-container">
-        <div id="tagline">Sign Up Free. Use Free. Forever.</div>
+      <!--Auth Container-->
+      <div id="auth-container" class="modal">
+        <div id="firebaseui-auth-container" class="modal-content">
+          <div id="tagline">Sign Up Free. Use Free. Forever.</div>
+        </div>
       </div>
       <button id="projectbtn">Select Project</button>
-      <button id="taskbtn"> Select Task</button>
+      <!-- <button id="taskbtn">Select Task</button> -->
       <button id="timer"></button>
+      <button id="challenge-btn">What's the current challenge?</button>
+      <div id="challenge-modal" class="modal">
+        <div class="modal-content">
+          Enter Challenge:
+          <br />
+          <!-- <input id="challenge-input" type="text" /> -->
+          <textarea
+            id="challenge-input"
+            name="challenge-input"
+            cols="40"
+            rows="5"
+          ></textarea>
+          <br />
+          <button id="challenge-accepted-btn">Let's do it!</button>
+        </div>
+      </div>
+
       <div id="bottombar">
         <button id="enterhoursbtn">Enter Time</button>
+        <div id="enterhours" class="modal">
+          <div class="modal-content">
+            <span class="close"> &times;</span>
+            <h1 id="enter-title">Enter Time</h1>
+            <h1 id="edit-title">Edit Entry</h1>
+            <label for="hoursentry">Hours</label><br />
+            <input type="text" id="hoursentry" name="hours" /><br />
+            <label for="dateentry">Date:</label><br />
+            <input type="date" id="dateentry" name="date" min="2020-01-01" />
+            <br />
+            <label for="projectentry">Project</label><br />
+            <select name="project" id="projectentry"></select>
+            <!-- <br/>
+          <input type ="text" id="clientdisplay" disabled="disabled" /> -->
+            <input type="text" id="key" />
+            <br />
+            <button id="submit">Submit</button>
+          </div>
+        </div>
         <br />
         <button id="invoicebtn">Invoice</button>
-      </div>
-      <div id="enterhours" class="modal">
-        <div class="modal-content">
-          <span class="close"> &times;</span>
-          <h1 id="enter-title">Enter Time</h1>
-          <h1 id="edit-title">Edit Entry</h1>
-          <label for="hoursentry">Hours</label><br />
-          <input type="text" id="hoursentry" name="hours" /><br />
-          <label for="dateentry">Date:</label><br />
-          <input type="date" id="dateentry" name="date" min="2020-01-01" />
-          <br/>
-          <label for="projectentry">Project</label><br />
-          <select name="project" id="projectentry"></select>
-          <!-- <br/>
-          <input type ="text" id="clientdisplay" disabled="disabled" /> -->
-          <input type="text" id="key" />
-          <br />
-          <button id="submit">Submit</button>
-        </div>
       </div>
       <div id="projectmodal" class="modal">
         <div class="modal-content">
@@ -81,56 +101,62 @@
           <button id="addproject">Add project</button>
         </div>
       </div>
-<div id="report">
-  <div class="tab">
-  <button class="tablinks" onclick="openTab(event, 'uninvoiced-tab')">Uninvoiced Time</button>
-  <button class="tablinks" onclick="openTab(event, 'invoices-tab')">Invoices</button>
-  <button class="tablinks" onclick="openTab(event, 'Tokyo')">Invoice</button>
-</div>
+      <div id="report">
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'uninvoiced-tab')">
+            Time Sheet
+          </button>
+          <button class="tablinks" onclick="openTab(event, 'invoices-tab')">
+            Invoices
+          </button>
+          <button class="tablinks" onclick="openTab(event, 'Tokyo')">
+            An Invoice
+          </button>
+        </div>
 
-<!-- Tab content -->
-<div id="uninvoiced-tab" class="tabcontent">
-<!-- <p>Uninvoiced Time</p> -->
-<button id="bulk-edit-btn">Edit All Selected Entries</button>
-<button id="bulk-delete-btn">Delete All Selected Entries</button>
-<div id="bulk-edit-modal" class="modal">
-  <div class="modal-content">
-          <span class="close"> &times;</span>
-          Edit All Selected Entries
-          <div id="bulk-edit-form">
-            <label for="project-edit">Project:</label>
-            <select name="project-edit" id="project-edit"></select>
+        <!-- Tab content -->
+        <div id="uninvoiced-tab" class="tabcontent">
+          <!-- <p>Uninvoiced Time</p> -->
+          <button id="bulk-edit-btn">Edit All Selected Entries</button>
+          <button id="bulk-delete-btn">Delete All Selected Entries</button>
+          <div id="bulk-edit-modal" class="modal">
+            <div class="modal-content">
+              <span class="close"> &times;</span>
+              Edit All Selected Entries
+              <div id="bulk-edit-form">
+                <label for="project-edit">Project:</label>
+                <select name="project-edit" id="project-edit"></select>
+              </div>
+              <button id="submit-bulk-edit">Submit</button>
+            </div>
           </div>
-          <button id="submit-bulk-edit">Submit</button>
-  </div>
-</div>
-      <table id="hours-table"></table>
-</div>
+          <table id="hours-table"></table>
+        </div>
 
-<div id="invoices-tab" class="tabcontent">
-      <table id="invoices-table"></table>
-</div>
+        <div id="invoices-tab" class="tabcontent">
+          <table id="invoices-table"></table>
+        </div>
 
-<div id="Tokyo" class="tabcontent">
-  <h3>Tokyo</h3>
-  <p>Tokyo is the capital of Japan.</p>
-</div>
-<div id="invoice-modal" class="modal">
-  <div class="modal-content">
-    <div>Select a project to invoice:</div>
-          <label for="project-to-invoice">Project</label><br />
-          <select name="project" id="project-to-invoice"></select>
-          <br/>
-          <label for="from-date:">From:</label><br />
-          <input type="date" id="from-date" name="date" min="2020-01-01" />
-          <br/>
-          <label for="to-date">To:</label><br />
-          <input type="date" id="to-date" name="date" min="2020-01-01" />
-          <br/>
-          <button id="invoice-project-btn">Invoice</button>
-  </div>
-</div>
-</div>
+        <div id="Tokyo" class="tabcontent">
+          <h3>Tokyo</h3>
+          <p>Tokyo is the capital of Japan.</p>
+        </div>
+        <div id="invoice-modal" class="modal">
+          <div class="modal-content">
+            <div>Select a project to invoice:</div>
+            <label for="project-to-invoice">Project</label><br />
+            <select name="project" id="project-to-invoice"></select>
+            <br />
+            <label for="from-date:">From:</label><br />
+            <input type="date" id="from-date" name="date" min="2020-01-01" />
+            <br />
+            <label for="to-date">To:</label><br />
+            <input type="date" id="to-date" name="date" min="2020-01-01" />
+            <br />
+            <button id="invoice-project-btn">Invoice</button>
+          </div>
+        </div>
+      </div>
     </div>
     <link rel="stylesheet" href="main.css" />
     <link

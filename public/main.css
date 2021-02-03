@@ -2,6 +2,7 @@
   --color1: rgb(22, 22, 22);
   --color2: white;
   --color3: rgb(184, 233, 255);
+  --color4: rgb(236, 247, 252);
   --button-width-fraction: 0.9;
 }
 
@@ -76,10 +77,10 @@ body {
 
 #timer,
 #projectbtn,
-#taskbtn {
+#taskbtn,
+#challenge-btn {
   color: var(--color3);
   text-align: center;
-  font-size: 12vw;
   width: 100%;
   /* margin: 8vh; */
   background-color: rgba(0, 0, 0, 0);
@@ -129,11 +130,30 @@ button {
   display: inline-block;
 }
 
+#timer {
+  font-size: 12vw;
+  height: 16vw;
+  color: var(--color4);
+}
+
 #projectbtn {
   font-size: 4vw;
 }
 #taskbtn {
   font-size: 3vw;
+}
+
+#challenge-btn {
+  font-size: 3vw;
+}
+
+#challenge-input {
+  /* height */
+}
+
+#challenge-accepted-btn {
+  /* font-size: 1vw; */
+  padding: 1.5vw;
 }
 
 .projectselectbtns {
@@ -206,7 +226,6 @@ table {
   transform: translate(-50%, -50%);
   padding: 1rem;
 }
-
 
 /* Style the tab */
 .tab {
