@@ -126,10 +126,7 @@ button {
 #settingsbtn {
   /* #enterhoursbtn { */
   float: left;
-  position#challenge-input {
-    /* height */
-  }
-  :relative ;
+  position: relative;
   display: inline-block;
 }
 
@@ -148,10 +145,6 @@ button {
 
 #challenge-btn {
   font-size: 3vw;
-}
-
-#challenge-input {
-  /* height */
 }
 
 #challenge-accepted-btn {

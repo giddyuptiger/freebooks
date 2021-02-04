@@ -71,6 +71,8 @@ const oldHoursTable = document.getElementById("oldhours-table");
 const enterHoursBtn = document.getElementById("enterhoursbtn");
 const keyBox = document.getElementById("key");
 var db = firebase.database();
+var uninvoicedRef = db.ref(userRef + "/uninvoiced");
+var invoicedRef = db.ref(userRef + "/invoiced");
 var activepid, activeProject, activeClient;
 var activeChallenges = [];
 var activeChallenge = [];
@@ -811,8 +813,8 @@ var toDate = document.getElementById("to-date");
 //collect Entries
 function collectEntries() {
   var selectedPID = projectToInvoice.value;
-  var from = fromDate.value;
-  var to = toDate.value;
+  // var from = fromDate.value;
+  // var to = toDate.value;
   // console.log(selectedPID, "from to: ", from, to);
   var keysToInvoice = {};
   // console.log(.5);
@@ -841,7 +843,7 @@ function collectEntries() {
   var confirmText = "No time available to invoice";
   if (numberOfEntries > 1) {
     confirmText = "Invoice " + numberOfEntries + " entries?";
-  } else if (numberOfEntries == 1 && checkboxes[0].checked) {
+  } else if (numberOfEntries == 1) {
     return;
   } else if (numberOfEntries == 1) {
     confirmText = "Invoice Entry?";
@@ -859,30 +861,28 @@ function collectEntries() {
       // console.log(keysToInvoice);
       var totaltime = 0;
       Object.keys(keysToInvoice).forEach((key) => {
-        console.log("key to move: ", key, snap.val()[key]);
+        // console.log("key to move: ", key, snap.val()[key]);
         // console.log(key.val());
         var invoicedEntry = snap.val()[key];
         // var hours = snap.key.hours
-        console.log(snap.key.val().hours);
-        totaltime += snap.val().key.hours;
+        totaltime += snap.val()[key]["hours"];
         // console.log(invoicedEntry);
         // invoicedEntry.invoiced = {
         //   ".sv": "timestamp",
         // };
         // console.log(uninvoicedObj);
         uninvoicedObj[key] = invoicedEntry;
-        console.log("uninvoicedObj = ", uninvoicedObj);
+        // console.log("uninvoicedObj = ", uninvoicedObj);
       });
-      console.log(totaltime);
-      console.log("uninvoicedObj: ", uninvoicedObj);
+      // console.log(totaltime);
+      // console.log("uninvoicedObj: ", uninvoicedObj);
       uninvoicedObj["pid"] = selectedPID;
       uninvoicedObj["totaltime"] = totaltime;
       // uninvoicedObj[date] = date;
-      console.log("uninvoicedObj: ", uninvoicedObj);
+      // console.log("uninvoicedObj: ", uninvoicedObj);
       var invoiceTimestamp = new Date();
       console.log("invoice timestamp: ", invoiceTimestamp);
-      db.ref(userRef + "/invoiced/" + invoiceTimestamp).set(uninvoicedObj);
-      console.log("did it work?");
+      db.ref(`${userRef}/invoiced/${invoiceTimestamp}`).set(uninvoicedObj);
       console.log("uninvoicedObj:VVVVVVVVVVV");
       console.log(uninvoicedObj);
       var entriesArray = Object.values(uninvoicedObj);
@@ -900,7 +900,9 @@ function collectEntries() {
       exportCSVFile(headers, itemsFormatted, fileTitle); // call the exportCSVFile() function to process the JSON and trigger the download
     });
     // REMOVE from UNINVOICED
-    db.ref(userRef + "/uninvoiced").update(keysToInvoice);
+    Object.keys(keysToInvoice).forEach((key) => {
+      db.ref(userRef + "/uninvoiced/" + key).remove();
+    });
   } else {
     console.log("invoice cancelled");
   }
@@ -999,9 +1001,9 @@ var headers = {
 //   },
 // ];
 
-var itemsFormatted = [];
 // format the data
 function formatData(data) {
+  var itemsFormatted = [];
   itemsNotFormatted.forEach((item) => {
     itemsFormatted.push({
       // model: item.model.replace(/,/g, ""), // remove commas to avoid errors,
@@ -1016,6 +1018,7 @@ function formatData(data) {
     });
   });
   console.log(itemsFormatted);
+  return itemsFormatted;
 }
 
 function timeFromUnix(unix) {
@@ -1161,7 +1164,33 @@ function liveInvoices() {
 }
 
 function undoInvoice(id) {
+  var invoiceToUndoRef = invoicedRef.child("id");
   console.log("undoing Invoice" + id);
+  // moveFBRecord(invoiceToUndoRef, uninvoicedRef);
+  db.ref(userRef + "/invoiced/" + id).once("value", function (snap) {
+    console.log(snap.val());
+    db.ref(userRef + "/uninvoiced").update(snap.val(), function (error) {
+      if (!error) {
+        db.ref(userRef + "/invoiced/" + id).remove();
+      } else if (typeof console !== "undefined" && console.error) {
+        console.error(error);
+      }
+    });
+  });
+}
+
+function moveFBRecord(oldRef, newRef) {
+  console.log("running moveFBRecord");
+  oldRef.once("value", function (snap) {
+    console.log(snap.val());
+    newRef.update(snap.val(), function (error) {
+      if (!error) {
+        oldRef.remove();
+      } else if (typeof console !== "undefined" && console.error) {
+        console.error(error);
+      }
+    });
+  });
 }
 
 var months = [
