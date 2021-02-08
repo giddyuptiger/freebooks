@@ -844,8 +844,6 @@ function collectEntries() {
   if (numberOfEntries > 1) {
     confirmText = "Invoice " + numberOfEntries + " entries?";
   } else if (numberOfEntries == 1) {
-    return;
-  } else if (numberOfEntries == 1) {
     confirmText = "Invoice Entry?";
   }
   if (confirm(confirmText)) {
@@ -856,6 +854,7 @@ function collectEntries() {
 
     // COPY to INVOICED
     var uninvoicedObj = {};
+    var entriesObj = {};
     db.ref(userRef + "/uninvoiced").once("value", function (snap) {
       // console.log("entries obj:", snap.val());
       // console.log(keysToInvoice);
@@ -871,18 +870,20 @@ function collectEntries() {
         //   ".sv": "timestamp",
         // };
         // console.log(uninvoicedObj);
-        uninvoicedObj[key] = invoicedEntry;
+        entriesObj[key] = invoicedEntry;
         // console.log("uninvoicedObj = ", uninvoicedObj);
       });
       // console.log(totaltime);
       // console.log("uninvoicedObj: ", uninvoicedObj);
+      var invoiceTimestamp = new Date();
       uninvoicedObj["pid"] = selectedPID;
       uninvoicedObj["totaltime"] = totaltime;
+      uninvoicedObj["date"] = invoiceTimestamp;
+      uninvoicedObj["entries"] = entriesObj;
       // uninvoicedObj[date] = date;
       // console.log("uninvoicedObj: ", uninvoicedObj);
-      var invoiceTimestamp = new Date();
       console.log("invoice timestamp: ", invoiceTimestamp);
-      db.ref(`${userRef}/invoiced/${invoiceTimestamp}`).set(uninvoicedObj);
+      db.ref(`${userRef}/invoiced`).push(uninvoicedObj);
       console.log("uninvoicedObj:VVVVVVVVVVV");
       console.log(uninvoicedObj);
       var entriesArray = Object.values(uninvoicedObj);
@@ -1168,30 +1169,33 @@ function undoInvoice(id) {
   console.log("undoing Invoice" + id);
   // moveFBRecord(invoiceToUndoRef, uninvoicedRef);
   db.ref(userRef + "/invoiced/" + id).once("value", function (snap) {
-    console.log(snap.val());
-    db.ref(userRef + "/uninvoiced").update(snap.val(), function (error) {
-      if (!error) {
-        db.ref(userRef + "/invoiced/" + id).remove();
-      } else if (typeof console !== "undefined" && console.error) {
-        console.error(error);
+    console.log(snap.val().entries);
+    db.ref(userRef + "/uninvoiced").update(
+      snap.val().entries,
+      function (error) {
+        if (!error) {
+          db.ref(userRef + "/invoiced/" + id).remove();
+        } else if (typeof console !== "undefined" && console.error) {
+          console.error(error);
+        }
       }
-    });
+    );
   });
 }
 
-function moveFBRecord(oldRef, newRef) {
-  console.log("running moveFBRecord");
-  oldRef.once("value", function (snap) {
-    console.log(snap.val());
-    newRef.update(snap.val(), function (error) {
-      if (!error) {
-        oldRef.remove();
-      } else if (typeof console !== "undefined" && console.error) {
-        console.error(error);
-      }
-    });
-  });
-}
+// function moveFBRecord(oldRef, newRef) {
+//   console.log("running moveFBRecord");
+//   oldRef.once("value", function (snap) {
+//     console.log(snap.val());
+//     newRef.update(snap.val(), function (error) {
+//       if (!error) {
+//         oldRef.remove();
+//       } else if (typeof console !== "undefined" && console.error) {
+//         console.error(error);
+//       }
+//     });
+//   });
+// }
 
 var months = [
   "January",
