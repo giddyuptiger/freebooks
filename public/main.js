@@ -878,15 +878,18 @@ function collectEntries() {
       var invoiceTimestamp = new Date();
       uninvoicedObj["pid"] = selectedPID;
       uninvoicedObj["totaltime"] = totaltime;
-      uninvoicedObj["date"] = invoiceTimestamp;
+      // uninvoicedObj["date"] = invoiceTimestamp;
       uninvoicedObj["entries"] = entriesObj;
+      uninvoicedObj["date"] = {
+        ".sv": "timestamp",
+      };
       // uninvoicedObj[date] = date;
       // console.log("uninvoicedObj: ", uninvoicedObj);
       console.log("invoice timestamp: ", invoiceTimestamp);
       db.ref(`${userRef}/invoiced`).push(uninvoicedObj);
       console.log("uninvoicedObj:VVVVVVVVVVV");
       console.log(uninvoicedObj);
-      var entriesArray = Object.values(uninvoicedObj);
+      var entriesArray = Object.values(uninvoicedObj["entries"]);
       // var entriesArray;
       // for (key in uninvoicedObj) {
       //   console.log(uninvoicedObj.key);
@@ -960,7 +963,7 @@ function exportCSVFile(headers, items, fileTitle) {
       document.body.removeChild(link);
     }
   }
-  console.log("csv downloaded I think");
+  // console.log("csv downloaded I think");
   //clear itemsFormatted
   itemsFormatted = [];
   hide(invoiceModal);
@@ -1078,12 +1081,13 @@ function liveInvoices() {
   db.ref(userRef + "/invoiced").on("value", function (snapshot) {
     invoicedSnapshot = snapshot;
     invoicesArray = [];
-    // hoursHeaders = ["Date", "Client", "Project", "Hours", "key"];
+    // hoursHeaders = ["Date", "Client", "Project", "Hours", "Paid", "key"];
     var invoicesHeaders = [
       "Invoice Date",
       "Project",
       "Client",
       "Hours",
+      "Status",
       "UNDO",
     ];
     // var entries =
@@ -1092,14 +1096,15 @@ function liveInvoices() {
     snapshot.forEach(function (entry) {
       var rowArray = [];
       var cell = entry.val();
-      // console.log(entry.key);
-      var invoiceDate = formatDate(entry.key);
+      console.log(cell.date);
+      var invoiceDate = formatDate(cell.date);
       // invoiceDate = ('0' + (1 + invoiceDate.getMonth())).slice(-2) + '/' + ('0' + invoiceDate.getDay()).slice(-2) + '/' + String(invoiceDate.getFullYear()) + ' ' + ('0' + invoiceDate.getHours()).slice(-2) + ':' + ('0' + invoiceDate.getMinutes()).slice(-2)
       // console.log(invoiceDate);
       rowArray.push(invoiceDate);
       var invoicedHours = cell.totaltime
         ? (cell.totaltime / 1000 / 60 / 60).toFixed(2)
         : "NA";
+      var paid = cell.paid;
       if (cell.pid !== undefined) {
         var pid = cell.pid;
         var project = projectObj[pid].projectName;
@@ -1111,6 +1116,11 @@ function liveInvoices() {
         rowArray.push(cell.project + " (dated entry)");
       }
       rowArray.push(invoicedHours);
+      if (paid) {
+        rowArray.push("PAID");
+      } else {
+        rowArray.push("Due");
+      }
       // console.log(invoicedHours);
       rowArray.push(entry.key);
       invoicesArray.push(rowArray);
@@ -1134,11 +1144,15 @@ function liveInvoices() {
       //   entries += "</tr>";
       // }
     });
-    invoicesArray.sort().reverse();
+    invoicesArray.sort();
     invoicesArray.unshift(invoicesHeaders);
     // console.log(invoicesArray);
     for (var i = 0; i < invoicesArray.length; i++) {
       var row = document.createElement("tr");
+      console.log(invoicesArray[i]);
+      if (invoicesArray[i][4] == "PAID") {
+        row.className = "paid-invoice";
+      }
       // row.innerHTML +=
       //   '<td><input type="checkbox" data-entrykey="' +
       //   invoicesArray[i][4] +
@@ -1151,9 +1165,12 @@ function liveInvoices() {
         }
         if (j === invoicesArray[i].length) {
           cell.innerHTML =
-            '<button id="' +
-            invoicesArray[i][4] +
-            '" onClick="undoInvoice(this.id)"> UNDO </button>';
+            '<button class="invoice-button undo-invoice" id="' +
+            invoicesArray[i][5] +
+            '" onClick="undoInvoice(this.id)"> UNDO </button>' +
+            '<button class="invoice-button mark-paid" id="' +
+            invoicesArray[i][5] +
+            '" onClick="togglePaid(this.id)">Mark Paid</button>';
         }
         row.appendChild(cell);
       }
@@ -1180,6 +1197,22 @@ function undoInvoice(id) {
         }
       }
     );
+  });
+}
+
+function togglePaid(id) {
+  db.ref(userRef + "/invoiced/" + id).once("value", function (snap) {
+    if (snap.val() == undefined || snap.val().paid == false) {
+      if (confirm('Are you sure you want to mark this invoice as "Paid"?')) {
+        db.ref(userRef + "/invoiced/" + id).update({ paid: true });
+      }
+    } else {
+      if (
+        confirm('Are you sure you want to mark this invoice as "Not Paid"?')
+      ) {
+        db.ref(userRef + "/invoiced/" + id).update({ paid: false });
+      }
+    }
   });
 }
 
