@@ -1,3 +1,4 @@
+// "use strict";
 // Initialize the FirebaseUI Widget using Firebase.
 var ui = new firebaseui.auth.AuthUI(firebase.auth());
 ui.start("#firebaseui-auth-container", {
@@ -9,9 +10,9 @@ ui.start("#firebaseui-auth-container", {
     //     }
     // List of OAuth providers supported.
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-    firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-    firebase.auth.GithubAuthProvider.PROVIDER_ID,
+    // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+    // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+    // firebase.auth.GithubAuthProvider.PROVIDER_ID,
     //optional display name
     // provider: firebase.auth.EmailAuthProvider.PROVIDER_ID,
     // requireDisplayName: false
@@ -39,11 +40,11 @@ var uiConfig = {
   signInOptions: [
     // Leave the lines as is for the providers you want to offer your users.
     firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-    firebase.auth.FacebookAuthProvider.PROVIDER_ID,
-    firebase.auth.TwitterAuthProvider.PROVIDER_ID,
-    firebase.auth.GithubAuthProvider.PROVIDER_ID,
+    // firebase.auth.FacebookAuthProvider.PROVIDER_ID,
+    // firebase.auth.TwitterAuthProvider.PROVIDER_ID,
+    // firebase.auth.GithubAuthProvider.PROVIDER_ID,
     firebase.auth.EmailAuthProvider.PROVIDER_ID,
-    firebase.auth.PhoneAuthProvider.PROVIDER_ID,
+    // firebase.auth.PhoneAuthProvider.PROVIDER_ID,
   ],
   // Terms of service url.
   tosUrl: "<your-tos-url>",
@@ -126,22 +127,12 @@ firebase.auth().onAuthStateChanged(function (user) {
           "\nActive?:",
           active
         );
-        if (snapshot.exists() && active) {
-          projectbtn.classList.add("inactive");
-          projectbtn.innerHTML = "Project: " + activeProject;
-          // if (activeChallenges) {
-          //   challengebtn.innerHTML =
-          //     activeChallenges[activeChallenges.length - 1];
-          // }
-          console.log("UPDATED TIMER STATE, starttime: " + starttime);
-        } else {
-          projectbtn.classList.remove("inactive");
-          console.log('UPDATED TIMER STATE "stopped"');
-        }
-        // if (activeProject) {
-        //   // activeProject =
-        //   projectbtn.innerHTML = "Project: " + activeProject;
-        // }
+        projectbtn.innerHTML = activeProject
+          ? "Project: " + activeProject
+          : "Select Project...";
+        active
+          ? projectbtn.classList.add("inactive")
+          : projectbtn.classList.remove("inactive");
         starttime = snapshot.val().starttime;
       } catch (err) {
         console.log("couldn't reach active, creating it now...", err);
@@ -163,6 +154,7 @@ firebase.auth().onAuthStateChanged(function (user) {
 });
 
 logout.onclick = function () {
+  // if (confirm("are you sure?")) {
   firebase
     .auth()
     .signOut()
@@ -176,7 +168,7 @@ logout.onclick = function () {
     .catch(function (error) {
       console.log(error);
     });
-  //   show(signin);
+  // }
 };
 
 //INITIALIZE HOURS TABLE
@@ -1047,6 +1039,15 @@ function toMS(hours) {
   return hours * 1000 * 60 * 60;
 }
 
+var reportSection = document.getElementById("report");
+var openReport = document.getElementById("my-time");
+let report_Style_Display = window.getComputedStyle(reportSection).display;
+function openReporting() {
+  (reportSection.style.display || report_Style_Display) === "none"
+    ? show(reportSection)
+    : hide(reportSection);
+}
+
 function openTab(evt, tabName) {
   // Declare all variables
   var i, tabcontent, tablinks, activeTab;
@@ -1076,6 +1077,7 @@ function openTab(evt, tabName) {
 
 //invoices tab
 var invoicesTable = document.getElementById("invoices-table");
+
 function liveInvoices() {
   console.log("liveInvoices running");
   db.ref(userRef + "/invoiced").on("value", function (snapshot) {
@@ -1096,7 +1098,7 @@ function liveInvoices() {
     snapshot.forEach(function (entry) {
       var rowArray = [];
       var cell = entry.val();
-      console.log(cell.date);
+      // console.log(cell.date);
       var invoiceDate = formatDate(cell.date);
       // invoiceDate = ('0' + (1 + invoiceDate.getMonth())).slice(-2) + '/' + ('0' + invoiceDate.getDay()).slice(-2) + '/' + String(invoiceDate.getFullYear()) + ' ' + ('0' + invoiceDate.getHours()).slice(-2) + ':' + ('0' + invoiceDate.getMinutes()).slice(-2)
       // console.log(invoiceDate);
@@ -1149,7 +1151,7 @@ function liveInvoices() {
     // console.log(invoicesArray);
     for (var i = 0; i < invoicesArray.length; i++) {
       var row = document.createElement("tr");
-      console.log(invoicesArray[i]);
+      // console.log(invoicesArray[i]);
       if (invoicesArray[i][4] == "PAID") {
         row.className = "paid-invoice";
       }

@@ -6,7 +6,7 @@
 
     <title>FocusBooks</title>
     <meta name="description" content="Are you ready to thrive?" />
-    <link href="./favicon-32x32.png" rel="shortcut icon" />
+    <link href="./FocusBooks Logo.png" rel="shortcut icon" />
   </head>
 
   <body>
@@ -23,8 +23,10 @@
       <!-- The surrounding HTML is left untouched by FirebaseUI.
      Your app may use that space for branding, controls and other customizations.-->
       <div id="navbar">
-        <div id="title">FocusBooks</div>
-        <div id="menu"><button id="settingsbtn">settings</button></div>
+        <div id="title">
+          <img src="./FocusBooks Logo.png" width="20" />FocusBooks
+        </div>
+        <!-- <div id="menu"><button id="settingsbtn">settings</button></div> -->
         <div id="logout">
           <button id="logoutbtn">Log Out</button>
           <div id="loader">Loading...</div>
@@ -101,6 +103,9 @@
           <button id="addproject">Add project</button>
         </div>
       </div>
+      <button id="my-time" onclick="openReporting(event)">
+        Toggle Reporting View
+      </button>
       <div id="report">
         <div class="tab">
           <button class="tablinks" onclick="openTab(event, 'uninvoiced-tab')">
@@ -109,9 +114,9 @@
           <button class="tablinks" onclick="openTab(event, 'invoices-tab')">
             Invoices
           </button>
-          <button class="tablinks" onclick="openTab(event, 'Tokyo')">
+          <!-- <button class="tablinks" onclick="openTab(event, 'Tokyo')">
             An Invoice
-          </button>
+          </button> -->
         </div>
 
         <!-- Tab content -->
@@ -137,10 +142,10 @@
           <table id="invoices-table"></table>
         </div>
 
-        <div id="Tokyo" class="tabcontent">
+        <!-- <div id="Tokyo" class="tabcontent">
           <h3>Tokyo</h3>
           <p>Tokyo is the capital of Japan.</p>
-        </div>
+        </div> -->
         <div id="invoice-modal" class="modal">
           <div class="modal-content">
             <div>Select a project to invoice:</div>

@@ -217,7 +217,7 @@ table {
 }
 
 #title {
-  color: rgb(207, 248, 195);
+  color: rgb(182, 117, 117);
   font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
   text-align: center;
   float: none;
@@ -246,6 +246,20 @@ table {
   transition: 0.3s;
 }
 
+#report {
+  display: none;
+}
+
+#my-time {
+  background-color: black;
+  /* width: 100%; */
+  border: none;
+  outline: none;
+  cursor: pointer;
+  padding: 14px 16px;
+  transition: 0.3s;
+  float: left;
+}
 /* Change background color of buttons on hover */
 .tab button:hover {
   background-color: #ddd;
