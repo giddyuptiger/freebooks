@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>FocusBooks</title>
+    <meta name="description" content="Are you ready to thrive?" />
+    <link href="./FocusBooks Logo.png" rel="shortcut icon" />
+
+    <!-- update the version number as needed -->
+    <script defer src="/__/firebase/10.12.3/firebase-app-compat.js"></script>
+    <!-- include only the Firebase features as you need -->
+    <script defer src="/__/firebase/10.12.3/firebase-auth-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-database-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-firestore-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-functions-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-messaging-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-storage-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-analytics-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-remote-config-compat.js"></script>
+    <script defer src="/__/firebase/10.12.3/firebase-performance-compat.js"></script>
+    <!-- 
+      initialize the SDK after all desired features are loaded, set useEmulator to false
+      to avoid connecting the SDK to running emulators.
+    -->
+    <script defer src="/__/firebase/init.js?useEmulator=true"></script>
+    <script defer src="bundle.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Roboto"
+    />
+    <link rel="stylesheet" href="main.css" />
+
+  </head>
+
+  <body>
+    <!-- <button id="start">Start</button>
+    <button id="stop">Stop</button> -->
+    <!-- <div>
+      <div id="navbar">
+        <div id="title">
+          <img src="./FocusBooks Logo.png" width="20" />FocusBooks
+        </div>
+      </div> -->
+      <!--Auth Container-->
+      <!-- <div id="auth-container" class="modal">
+        <div id="firebaseui-auth-container" class="modal-content">
+          <div id="tagline">Sign Up Free. Use Free. Forever.</div>
+        </div>
+      </div>
+      <button id="projectbtn">Select Project</button>
+      <button id="timer"></button>
+      <button id="challenge-btn">What's the current challenge?</button>
+      <div id="challenge-modal" class="modal">
+        <div class="modal-content">
+          Enter Challenge:
+          <br />
+          <textarea
+            id="challenge-input"
+            name="challenge-input"
+            cols="40"
+            rows="5"
+          ></textarea>
+          <br />
+          <button id="challenge-accepted-btn">Let's do it!</button>
+        </div>
+      </div>
+
+      <div id="bottombar">
+        <button id="enterhoursbtn">Enter Time</button>
+        <div id="enterhours" class="modal">
+          <div class="modal-content">
+            <span class="close"> &times;</span>
+            <h1 id="enter-title">Enter Time</h1>
+            <h1 id="edit-title">Edit Entry</h1>
+            <label for="hoursentry">Hours</label><br />
+            <input type="text" id="hoursentry" name="hours" /><br />
+            <label for="dateentry">Date:</label><br />
+            <input type="date" id="dateentry" name="date" min="2020-01-01" />
+            <br />
+            <label for="projectentry">Project</label><br />
+            <select name="project" id="projectentry"></select>
+            <input type="text" id="key" />
+            <br />
+            <button id="submit">Submit</button>
+          </div>
+        </div>
+        <br />
+        <button id="invoicebtn">Invoice</button>
+      </div>
+      <div id="projectmodal" class="modal">
+        <div class="modal-content">
+          <span class="close"> &times;</span>
+          <div id="projectlist"></div>
+          <button id="addprojectbtn">+</button>
+          <input
+            type="text"
+            id="addprojectinput"
+            name="addprojectinput"
+            placeholder="Project"
+          />
+          <input
+            type="text"
+            id="addclientinput"
+            name="addclientinput"
+            placeholder="Client"
+          />
+          <button id="addproject">Add project</button>
+        </div>
+      </div>
+      <button id="my-time" onclick="openReporting(event)">
+        Toggle Reporting View
+      </button>
+      <div id="report">
+        <div class="tab">
+          <button class="tablinks" onclick="openTab(event, 'uninvoiced-tab')">
+            Time Sheet
+          </button>
+          <button class="tablinks" onclick="openTab(event, 'invoices-tab')">
+            Invoices
+          </button>
+        </div>
+
+        <!-- Tab content
+        <div id="uninvoiced-tab" class="tabcontent">
+          <button id="bulk-edit-btn">Edit All Selected Entries</button>
+          <button id="bulk-delete-btn">Delete All Selected Entries</button>
+          <div id="bulk-edit-modal" class="modal">
+            <div class="modal-content">
+              <span class="close"> &times;</span>
+              Edit All Selected Entries
+              <div id="bulk-edit-form">
+                <label for="project-edit">Project:</label>
+                <select name="project-edit" id="project-edit"></select>
+              </div>
+              <button id="submit-bulk-edit">Submit</button>
+            </div>
+          </div>
+          <table id="hours-table"></table>
+        </div>
+
+        <div id="invoices-tab" class="tabcontent">
+          <table id="invoices-table"></table>
+        </div>
+
+        <div id="invoice-modal" class="modal">
+          <div class="modal-content">
+            <div>Select a project to invoice:</div>
+            <label for="project-to-invoice">Project</label><br />
+            <select name="project" id="project-to-invoice"></select>
+            <br />
+            <button id="invoice-project-btn">Invoice</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <link rel="stylesheet" href="main.css" />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css?family=Karla"
+    />
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-analytics.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.21.0/firebase-database.js"></script>
+    <script src="/__/firebase/init.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.js"></script>
+    <link
+      type="text/css"
+      rel="stylesheet"
+      href="https://www.gstatic.com/firebasejs/ui/4.3.0/firebase-ui-auth.css"
+    />
+    <script src="bundle.js"></script> -->
+  </body>
+</html>
