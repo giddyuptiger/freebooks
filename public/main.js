@@ -64,6 +64,7 @@ var userRef;
 const startButton = document.getElementById("start");
 const stopButton = document.getElementById("stop");
 const timer = document.getElementById("timer");
+const flowNotes = 
 const projectSelector = document.getElementById("project");
 const projectSelect = document.getElementById("projectselect");
 const projectEntry = document.getElementById("projectentry");

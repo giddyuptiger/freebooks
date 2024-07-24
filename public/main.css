@@ -75,6 +75,10 @@ body {
   cursor: pointer;
 }
 
+#timer {
+  margin: 3rem 0;
+}
+
 #timer,
 #projectbtn,
 #taskbtn,
