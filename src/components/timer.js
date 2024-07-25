@@ -1,5 +1,10 @@
 // src/components/timer.js
 import { db } from "../database/db";
+import { elt } from "../commonFunctions";
+
+let starttime;
+
+const timer = elt("button", { id: "timer" });
 
 //TICKING
 export function ticking() {
@@ -29,7 +34,7 @@ export function ticking() {
 }
 
 //START/STOP TIMER FUNCTIONS
-export function startTimer() {
+export function startTimer(userRef) {
   console.log("running startTimer");
   db.ref(userRef + "/state")
     .once("value")
@@ -63,7 +68,7 @@ export function startTimer() {
         } /*THEN STOP TIMER*/ else {
           var key = snapshot.val().key;
           var stoptime = new Date();
-          var starttime = snapshot.val().starttime;
+          starttime = snapshot.val().starttime;
           var hours = stoptime - starttime;
           var pid = activepid;
           var challenges = activeChallenges;

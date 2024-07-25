@@ -1,8 +1,23 @@
-import firebase from "firebase/app";
-import "firebase/auth";
+import { firebaseApp, firestoreDb } from "../firebaseUtils"; // Import Firebase app and Firestore
+import "firebase/auth"; // Import Firebase Auth
 import * as firebaseui from "firebaseui";
-import { firebaseConfig } from "../firebaseUtils";
+import { show, hide } from "../commonFunctions";
+import { div } from "../commonFunctions";
 
+export const logoutDiv = div(
+  { id: "logoutbtn", onclick: signOut() },
+  "Log Out"
+);
+
+const authContainer = div(
+  { id: "auth-container", class: "modal" },
+  div(
+    { id: "firebaseui-auth-container", class: "modal-content" },
+    div({ id: "tagline" }, "Sign Up Free. Use Free. Forever.")
+  )
+);
+
+// Initialize FirebaseUI
 export function initializeAuthUI() {
   let ui = new firebaseui.auth.AuthUI(firebase.auth());
   console.log(ui);
@@ -25,15 +40,16 @@ export function initializeAuthUI() {
   });
 }
 
+// Sign out function
 export function signOut() {
   firebase
     .auth()
     .signOut()
     .then(function () {
-      show(signin);
+      // show(signin);
       show(authContainer);
-      hide(timer);
-      hours.innerHTML = "";
+      // hide(timer);
+      // hours.innerHTML = "";
       console.log("logged out");
     })
     .catch(function (error) {
@@ -41,6 +57,7 @@ export function signOut() {
     });
 }
 
+// Check authentication state
 export function checkAuthState() {
   firebase.auth().onAuthStateChanged(function (user) {
     if (user) {
@@ -48,26 +65,19 @@ export function checkAuthState() {
       console.log(user.email, "logged in");
       uid = user.uid;
       userRef = "users/" + uid;
-      hide(signin);
-      // logout.style.display = "block";
-      show(logout);
+      // hide(signin);
+      show(logoutDiv);
       liveProjects();
       liveHours();
       liveInvoices();
       db.ref(userRef + "/state").on("value", function (snapshot) {
         try {
-          // console.log("trying to read /state");
           active = snapshot.val().active;
           activepid = snapshot.val().pid;
           starttime = snapshot.val().starttime;
           console.log("activePid: ", activepid);
-          // console.log("PROJECTactive: ", projectObj[activepid]);
-          // console.log("PROJECTactive: ", projectObj[activepid].projectName);
           activeProject = projectObj[activepid].projectName;
-          activeChallenges = snapshot.val().challenges
-            ? snapshot.val().challenges
-            : [];
-          // activeClient = snapshot.val().client;
+          activeChallenges = snapshot.val().challenges || [];
           console.log(
             "Updating state to:",
             "\npid: ",
@@ -85,22 +95,19 @@ export function checkAuthState() {
           active
             ? projectbtn.classList.add("inactive")
             : projectbtn.classList.remove("inactive");
-          starttime = snapshot.val().starttime;
         } catch (err) {
           console.log("couldn't reach active, creating it now...", err);
           db.ref(userRef + "/state").set({ active: false });
         }
       });
-      show(timer);
-      show(projectbtn);
+      // show(timer);
+      // show(projectbtn);
     } else {
-      // No user is signed in.
-      // signin.style.display = "block";
-      hide(logout);
-      show(signin);
+      hide(logoutDiv);
+      // show(signin);
       show(authContainer);
-      hide(timer);
-      hide(projectbtn);
+      // hide(timer);
+      // hide(projectbtn);
       console.log("no user logged in");
     }
   });

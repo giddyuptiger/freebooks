@@ -1,6 +1,6 @@
 // src/index.js
 // import firebase from "firebase/app";
-import { firebaseConfig, db } from "./firebaseUtils";
+import { firebaseApp, firestoreDb } from "./firebaseUtils";
 import {
   getFirestore,
   collection,
@@ -8,19 +8,24 @@ import {
   getDoc,
   doc,
 } from "firebase/firestore";
-import { checkAuthState, signOut, initializeAuthUI } from "./auth/auth";
+import {
+  checkAuthState,
+  signOut,
+  initializeAuthUI,
+  logoutDiv,
+  authContainer,
+} from "./auth/auth";
 import { liveInvoices } from "./database/invoice";
-import { liveProjects } from "./components/project";
-import { startTimer, ticking } from "./components/timer";
+import { liveProjects, projectModal } from "./components/project";
+import { startTimer, ticking, timer } from "./components/timer";
 import {
   show,
   hide,
   div,
   elt,
   challengeBtn,
-  challengeAcceptedBtn,
+  // challengeAcceptedBtn,
   bulkDeleteBtn,
-  submitBulkEdit,
   editEntry,
   deleteEntry,
   invoiceBtn,
@@ -28,10 +33,11 @@ import {
   collectEntries,
   exportToCSV,
   submitHours,
+  openTab,
 } from "./commonFunctions";
-import { cF } from "./commonFunctions";
+import * as cF from "./commonFunctions";
 import * as projectF from "./components/project";
-import { close, enterHoursBtn } from "./components/hourEntry";
+import { close, enterHoursBtn, enterHoursModal } from "./components/hourEntry";
 
 // // Initialize Firebase (add your config here)
 // const firebaseConfig = {
@@ -44,11 +50,9 @@ import { close, enterHoursBtn } from "./components/hourEntry";
 //   appId: "<your-app-id>",
 // };
 
-firebase.initializeApp(firebaseConfig);
-initializeAuthUI();
+// firebase.initializeApp(firebaseConfig);
 
 let body = document.body;
-const logoutDiv = div({ id: "logoutbtn", onclick: f.logout() }, "Log Out");
 body.append(logoutDiv);
 
 const uid = "user-id"; // Replace with actual user ID logic
@@ -61,21 +65,46 @@ startTimer(userRef);
 ticking();
 
 // Define components
-const navbar = div({ id: "navbar" }, [
-  div({ id: "title" }, [
+const navbar = div(
+  { id: "navbar" },
+  div(
+    { id: "title" },
     elt("img", { src: "./FocusBooks Logo.png", width: "20" }),
-    "FocusBooks",
-  ]),
-]);
+    "FocusBooks"
+  )
+);
 
-const authContainer = div({ id: "auth-container", class: "modal" }, [
-  div({ id: "firebaseui-auth-container", class: "modal-content" }, [
-    div({ id: "tagline" }, "Sign Up Free. Use Free. Forever."),
-  ]),
-]);
+const bulkEditBtn = elt(
+  "button",
+  {
+    id: "bulk-edit-btn",
+    onclick: () => {
+      show(bulkEditBtn);
+    },
+  },
+  "Edit All Selected Entries"
+);
 
-const challengeModal = div({ id: "challenge-modal", class: "modal" }, [
-  div({ class: "modal-content" }, [
+function challengeAcceptedBtn() {
+  console.log("Challenge Accepted!!");
+  // hide(challengeModal);
+
+  // const challengeInput = challengeTextArea.value;
+  // challengebtn.innerHTML = challengeInput
+  //   ? challengeInput
+  //   : "What's the current challenge?";
+  // activeChallenge = [challengeInput];
+  // activeChallenges.push(challengeInput);
+  // active
+  //   ? db.ref(userRef + "/state").update({ challenges: activeChallenges })
+  //   : console.log("not active");
+  // console.log(activeChallenges);
+}
+
+const challengeModal = div(
+  { id: "challenge-modal", class: "modal" },
+  div(
+    { class: "modal-content" },
     "Enter Challenge:",
     elt("textarea", {
       id: "challenge-input",
@@ -85,61 +114,33 @@ const challengeModal = div({ id: "challenge-modal", class: "modal" }, [
     }),
     elt(
       "button",
-      { id: "challenge-accepted-btn", onclick: challengeAcceptedBtn() },
+      { id: "challenge-accepted-btn", onclick: challengeAcceptedBtn },
       "Let's do it!"
-    ),
-  ]),
-]);
+    )
+  )
+);
 
-const enterHoursModal = div({ id: "enterhours", class: "modal" }, [
-  div({ class: "modal-content" }, [
-    elt("span", { class: "close", onclick: close() }, " &times;"),
-    elt("h1", { id: "enter-title" }, "Enter Time"),
-    elt("h1", { id: "edit-title" }, "Edit Entry"),
-    elt("label", { for: "hoursentry" }, "Hours"),
-    elt("input", { type: "text", id: "hoursentry", name: "hours" }),
-    elt("label", { for: "dateentry" }, "Date:"),
-    elt("input", {
-      type: "date",
-      id: "dateentry",
-      name: "date",
-      min: "2020-01-01",
-    }),
-    elt("label", { for: "projectentry" }, "Project"),
-    elt("select", { name: "project", id: "projectentry" }),
-    elt("input", { type: "text", id: "key" }),
-    elt("button", { id: "submit", onclick: submitHours() }, "Submit"),
-  ]),
-]);
+function submitBulkEdit() {
+  console.log("submitBulkEdit");
+  // const bulkEditKeys = {};
+  // const pid = projectEdit.options[projectEdit.selectedIndex].value;
+  // const checkboxes = document.querySelectorAll("input[type=checkbox]");
+  // checkboxes.forEach((checkbox) => {
+  //   const entrykey = checkbox.dataset.entrykey;
+  //   if (checkbox.checked && entrykey) {
+  //     // console.log(checkbox.dataset.entrykey);
+  //     // console.log(bulkEditKeys, pid);
+  //     const path = entrykey + "/pid";
+  //     bulkEditKeys[path] = pid;
+  //   }
+  // });
+  // console.log("updating:", bulkEditKeys);
+  // //make object with only checked entries and their new pid
+  // db.ref(userRef + "/uninvoiced").update(bulkEditKeys);
+  // hide(bulkEditModal);
+}
 
-const projectModal = div({ id: "projectmodal", class: "modal" }, [
-  div({ class: "modal-content" }, [
-    elt("span", { class: "close" }, " &times;"),
-    div({ id: "projectlist" }),
-    elt(
-      "button",
-      { id: "addprojectbtn", onclick: projectF.addprojectBtn },
-      "+"
-    ),
-    elt("input", {
-      type: "text",
-      id: "addprojectinput",
-      name: "addprojectinput",
-      placeholder: "Project",
-    }),
-    elt("input", {
-      type: "text",
-      id: "addclientinput",
-      name: "addclientinput",
-      placeholder: "Client",
-    }),
-    elt(
-      "button",
-      { id: "addproject", onclick: projectF.addProject() },
-      "Add project"
-    ),
-  ]),
-]);
+const projectEdit = elt("select", { name: "project-edit", id: "project-edit" });
 
 const reportSection = div(
   { id: "report" },
@@ -160,14 +161,10 @@ const reportSection = div(
   // Uninvoiced Tab
   div(
     { id: "uninvoiced-tab", class: "tabcontent" },
+    bulkEditBtn,
     elt(
       "button",
-      { id: "bulk-edit-btn", onclick: bulkEditBtn() },
-      "Edit All Selected Entries"
-    ),
-    elt(
-      "button",
-      { id: "bulk-delete-btn", onclick: bulkDeleteBtn() },
+      { id: "bulk-delete-btn", onclick: bulkDeleteBtn },
       "Delete All Selected Entries"
     ),
     div(
@@ -179,11 +176,11 @@ const reportSection = div(
         div(
           { id: "bulk-edit-form" },
           elt("label", { for: "project-edit" }, "Project:"),
-          elt("select", { name: "project-edit", id: "project-edit" })
+          projectEdit
         ),
         elt(
           "button",
-          { id: "submit-bulk-edit", onclick: submitBulkEdit() },
+          { id: "submit-bulk-edit", onclick: submitBulkEdit },
           "Submit"
         )
       )
@@ -206,54 +203,72 @@ const reportSection = div(
       elt("select", { name: "project", id: "project-to-invoice" }),
       elt(
         "button",
-        { id: "invoice-project-btn", onclick: invoiceProjectBtn() },
+        { id: "invoice-project-btn", onclick: invoiceProjectBtn },
         "Invoice"
       )
     )
   )
 );
 
-const timer = elt("button", { id: "timer" });
-
 // Assemble the main structure
-let mainStructure = div({}, [
+let mainStructure = div(
+  {},
   navbar,
   authContainer,
   elt(
     "button",
-    { id: "projectbtn", onclick: projectF.projectBtn() },
+    { id: "projectbtn", onclick: projectF.projectBtn },
     "Select Project"
   ),
   timer,
   elt(
     "button",
-    { id: "challenge-btn", onclick: challengeBtn() },
+    { id: "challenge-btn", onclick: challengeBtn },
     "What's the current challenge?"
   ),
   challengeModal,
-  div({ id: "bottombar" }, [
+  div(
+    { id: "bottombar" },
     elt(
       "button",
-      { id: "enterHoursBtn", onlclick: enterHoursBtn() },
+      { id: "enterHoursBtn", onlclick: enterHoursBtn },
       "Enter Time"
     ),
     enterHoursModal,
-    elt("button", { id: "invoicebtn", onclick: invoicebtn() }, "Invoice"),
-  ]),
+    elt("button", { id: "invoicebtn", onclick: invoicebtn }, "Invoice")
+  ),
   projectModal,
   elt(
     "button",
-    { id: "my-time", onclick: openReporting() },
+    { id: "my-time", onclick: openReporting },
     "Toggle Reporting View"
   ),
-  reportSection,
-]);
+  reportSection
+);
 
 // Append the main structure to the body or a specific container
 document.body.appendChild(mainStructure);
+console.log(mainStructure);
 
 // function openReporting() {
 //   (reportSection.style.display || report_Style_Display) === "none"
 //     ? show(reportSection)
 //     : hide(reportSection);
+// }
+
+// export function challengeModal() {
+//   console.log("opening challenge modal");
+
+//   document.getElementById("challenge-input").value = "";
+//   show(challengeModal);
+
+//   challengeTextArea.addEventListener("keyup", function (event) {
+//     // Number 13 is the "Enter" key on the keyboard
+//     if (event.keyCode === 13) {
+//       // Cancel the default action, if needed
+//       event.preventDefault();
+//       // Trigger the button element with a click
+//       challengeAcceptedbtn.click();
+//     }
+//   });
 // }

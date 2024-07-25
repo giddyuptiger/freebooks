@@ -1,7 +1,7 @@
 // src/database/invoice.js
 import { db } from "./db";
 
-export function liveInvoices() {
+export function liveInvoices(userRef) {
   console.log("liveInvoices running");
   db.ref(userRef + "/invoiced").on("value", function (snapshot) {
     invoicedSnapshot = snapshot;

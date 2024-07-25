@@ -1,3 +1,4 @@
+import { state } from "./state";
 // FREQUENTLY USED FUNCTIONS
 
 let body = document.body;
@@ -168,93 +169,10 @@ export function liveHours() {
 
 //CHALLENGE Screen
 
-export function challengeModal() {
-  console.log("opening challenge modal");
-
-  document.getElementById("challenge-input").value = "";
-  show(challengeModal);
-
-  challengeTextArea.addEventListener("keyup", function (event) {
-    // Number 13 is the "Enter" key on the keyboard
-    if (event.keyCode === 13) {
-      // Cancel the default action, if needed
-      event.preventDefault();
-      // Trigger the button element with a click
-      challengeAcceptedbtn.click();
-    }
-  });
-}
-
-export function challengeAcceptedBtn() {
-  console.log("Challenge Accepted!!");
-  hide(challengeModal);
-  // if(challengeArr){
-
-  const challengeInput = challengeTextArea.value;
-  // }
-  challengebtn.innerHTML = challengeInput
-    ? challengeInput
-    : "What's the current challenge?";
-  // challengeArr.push(challengeInput);
-  activeChallenge = [challengeInput];
-  activeChallenges.push(challengeInput);
-  active
-    ? db.ref(userRef + "/state").update({ challenges: activeChallenges })
-    : console.log("not active");
-  console.log(activeChallenges);
-  // db.console.log("Challenges", activeChallenges);
-}
-
 //SUBMIT HOURS
 // const submit = document.getElementById("submit");
 // const dateEntry = document.getElementById("dateentry");
 // const hoursEntry = document.getElementById("hoursentry");
-export function submitHours() {
-  console.log("Submitting with key(undefined if new entry): ", editingKey);
-  const pid = projectEntry.options[projectEntry.selectedIndex].value;
-  console.log("HERE", pid);
-  const project =
-    projectEntry.options[projectEntry.selectedIndex].getAttribute(
-      "data-project"
-    );
-  const client =
-    projectEntry.options[projectEntry.selectedIndex].getAttribute(
-      "data-client"
-    );
-  // const client = "clientEntry.options[]"
-  const date = dateEntry.value;
-  const hours = hoursEntry.value * 60 * 60 * 1000;
-  // const key = keyBox.value;
-  if (!editingKey) {
-    db.ref(userRef + "/uninvoiced").push({
-      submittedtime: {
-        ".sv": "timestamp",
-      },
-      pid: pid,
-      // client: client,
-      hours: hours,
-      date: date,
-    });
-  } else {
-    console.log("updating old entry", oldpid);
-    db.ref(userRef + "/uninvoiced" + "/" + editingKey).set({
-      history: {
-        hours: toMS(oldHours),
-        date: oldDate,
-        pid: oldpid,
-        // client: oldClient
-      },
-      hours: hours,
-      date: date,
-      pid: pid,
-      // client: client
-    });
-    editingKey = undefined;
-  }
-  hide(enterhoursmodal);
-}
-//EDIT MODAL
-
 export function bulkDeleteBtn() {
   const bulkEditKeys = {};
   const checkboxes = document.querySelectorAll("input[type=checkbox]");
@@ -273,7 +191,7 @@ export function bulkDeleteBtn() {
   } else if (numberOfEntries == 1) {
     const deleteConfirmText = "Delete Entry?";
   }
-  if (confirm(deleteConfirmText)) {
+  if (confirm("Delete Entry?")) {
     console.log("deleting:", bulkEditKeys);
     //make object with only checked entries and their new pid
     // COPY to DELETED
@@ -301,28 +219,9 @@ export function bulkDeleteBtn() {
   }
 }
 
-export function bulkEditBtn() {
-  show(bulkEditModal);
-}
-
-export function submitBulkEdit() {
-  const bulkEditKeys = {};
-  const pid = projectEdit.options[projectEdit.selectedIndex].value;
-  const checkboxes = document.querySelectorAll("input[type=checkbox]");
-  checkboxes.forEach((checkbox) => {
-    const entrykey = checkbox.dataset.entrykey;
-    if (checkbox.checked && entrykey) {
-      // console.log(checkbox.dataset.entrykey);
-      // console.log(bulkEditKeys, pid);
-      const path = entrykey + "/pid";
-      bulkEditKeys[path] = pid;
-    }
-  });
-  console.log("updating:", bulkEditKeys);
-  //make object with only checked entries and their new pid
-  db.ref(userRef + "/uninvoiced").update(bulkEditKeys);
-  hide(bulkEditModal);
-}
+// export function bulkEditBtn(bulkEditModal) {
+//   show(bulkEditModal);
+// }
 
 export function editEntry(key) {
   console.log("editing: " + key);
@@ -677,30 +576,31 @@ export function openReporting() {
 }
 
 export function openTab(evt, tabName) {
-  // Declare all constiables
-  let i, tabcontent, tablinks, activeTab;
+  console.log("opentab");
+  // // Declare all constiables
+  // let i, tabcontent, tablinks, activeTab;
 
-  // Get all elements with class="tabcontent" and hide them
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (let i = 0; i < tabcontent.length; i++) {
-    if (tabcontent[i].style.display == "block") {
-      activeTab = tabcontent[i].getAttribute("id");
-      // console.log(activeTab);
-    }
-    tabcontent[i].style.display = "none";
-  }
+  // // Get all elements with class="tabcontent" and hide them
+  // tabcontent = document.getElementsByClassName("tabcontent");
+  // for (let i = 0; i < tabcontent.length; i++) {
+  //   if (tabcontent[i].style.display == "block") {
+  //     activeTab = tabcontent[i].getAttribute("id");
+  //     // console.log(activeTab);
+  //   }
+  //   tabcontent[i].style.display = "none";
+  // }
 
-  // Get all elements with class="tablinks" and remove the class "active"
-  tablinks = document.getElementsByClassName("tablinks");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
-  }
-  console.log(tabName, activeTab, activeTab == tabName);
-  if (tabName != activeTab) {
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    document.getElementById(tabName).style.display = "block";
-    evt.currentTarget.className += " active";
-  }
+  // // Get all elements with class="tablinks" and remove the class "active"
+  // tablinks = document.getElementsByClassName("tablinks");
+  // for (i = 0; i < tablinks.length; i++) {
+  //   tablinks[i].className = tablinks[i].className.replace(" active", "");
+  // }
+  // console.log(tabName, activeTab, activeTab == tabName);
+  // if (tabName != activeTab) {
+  //   // Show the current tab, and add an "active" class to the button that opened the tab
+  //   document.getElementById(tabName).style.display = "block";
+  //   evt.currentTarget.className += " active";
+  // }
 }
 
 //invoices tab

@@ -1,6 +1,25 @@
 // src/components/project.js
 import { db } from "../database/db";
-import { show, hide } from "../commonFunctions";
+import { show, hide, div, elt } from "../commonFunctions";
+
+const addprojectinput = elt("input", {
+  type: "text",
+  id: "addprojectinput",
+  name: "addprojectinput",
+  placeholder: "Project",
+});
+
+const addclientinput = elt("input", {
+  type: "text",
+  id: "addclientinput",
+  name: "addclientinput",
+  placeholder: "Client",
+});
+const addproject2 = elt(
+  "button",
+  { id: "addproject", onclick: addProject() },
+  "Add project"
+);
 
 //PROJECT SCREEN
 export function projectBtn() {
@@ -10,7 +29,7 @@ export function projectBtn() {
   }
 }
 //LIVE PROJECT INFO
-export function liveProjects() {
+export function liveProjects(userRef) {
   db.ref(userRef + "/projects").on("value", function (snapshot) {
     var projectsHTML = "";
     projectObj = snapshot.val();
@@ -119,7 +138,7 @@ export function deleteProject(projectKey) {
 export function addprojectBtn() {
   addprojectinput.style.display = "block";
   addclientinput.style.display = "block";
-  addproject.style.display = "block";
+  addproject2.style.display = "block";
   addprojectinput.value = "";
   addclientinput.value = "";
 }
@@ -132,5 +151,18 @@ export function addProject() {
   }
   hide(addprojectinput);
   hide(addclientinput);
-  hide(addproject);
+  // hide(addproject2);
 }
+
+export const projectModal = div(
+  { id: "projectmodal", class: "modal" },
+  div(
+    { class: "modal-content" },
+    elt("span", { class: "close" }, " &times;"),
+    div({ id: "projectlist" }),
+    elt("button", { id: "addprojectbtn", onclick: addprojectBtn() }, "+"),
+    addprojectinput,
+    addclientinput,
+    addproject2
+  )
+);
